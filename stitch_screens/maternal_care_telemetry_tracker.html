@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-secondary-fixed-variant": "#404b29", "on-error-container": "#93000a", "tertiary-fixed": "#ffd9e1", "on-primary-container": "#fffbff", "primary-fixed-dim": "#ffb2b9", "error": "#ba1a1a", "surface-tint": "#8d4a52", "inverse-on-surface": "#e8f2ff", "on-tertiary": "#ffffff", "on-primary-fixed-variant": "#71333c", "inverse-primary": "#ffb2b9", "secondary-container": "#d8e5b7", "on-tertiary-container": "#fffbff", "surface": "#f7f9ff", "inverse-surface": "#25323e", "secondary-fixed-dim": "#bfcc9f", "on-background": "#0f1d29", "on-primary": "#ffffff", "primary": "#8b4850", "surface-container": "#e3efff", "surface-container-low": "#edf4ff", "outline": "#857374", "tertiary-fixed-dim": "#e9bbc5", "primary-container": "#a86068", "on-secondary-container": "#5b6742", "surface-variant": "#d6e4f5", "surface-dim": "#cedbec", "on-tertiary-fixed-variant": "#5f3d46", "on-tertiary-fixed": "#2e131b", "secondary": "#57633e", "secondary-fixed": "#dbe8ba", "on-error": "#ffffff", "on-surface": "#0f1d29", "tertiary": "#76525c", "surface-container-lowest": "#ffffff", "outline-variant": "#d7c1c2", "surface-container-high": "#dceafb", "on-secondary": "#ffffff", "on-secondary-fixed": "#151f03", "on-primary-fixed": "#3a0812", "error-container": "#ffdad6", "tertiary-container": "#916a74", "background": "#f7f9ff", "surface-bright": "#f7f9ff", "surface-container-highest": "#d6e4f5", "on-surface-variant": "#534344", "primary-fixed": "#ffdadc" }, borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, spacing: { "margin": "1.25rem", "gutter-sm": "0.75rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "gutter": "1rem", "space-xl": "2rem", "space-sm": "0.5rem", "margin-sm": "1rem", "space-md": "1rem" }, fontFamily: { "body-lg": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "display": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"] }, fontSize: { "body-lg": ["17px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "400" }], "body-sm": ["13px", { lineHeight: "18px", fontWeight: "400" }], "headline-lg": ["28px", { lineHeight: "34px", letterSpacing: "-0.015em", fontWeight: "700" }], "label-sm": ["11px", { lineHeight: "13px", letterSpacing: "0.03em", fontWeight: "500" }], "headline-md": ["20px", { lineHeight: "25px", letterSpacing: "-0.01em", fontWeight: "600" }], "headline-sm": ["17px", { lineHeight: "22px", letterSpacing: "-0.005em", fontWeight: "600" }], "display": ["34px", { lineHeight: "41px", letterSpacing: "-0.02em", fontWeight: "700" }], "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.02em", fontWeight: "600" }], "headline-lg-mobile": ["24px", { lineHeight: "30px", letterSpacing: "-0.01em", fontWeight: "700" }], "body-md": ["15px", { lineHeight: "21px", fontWeight: "400" }], "label-lg": ["14px", { lineHeight: "18px", letterSpacing: "0.01em", fontWeight: "600" }] } } } };</script><style>@layer base { html, body { margin: 0; padding: 0; min-height: 100%; -webkit-tap-highlight-color: transparent; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); } .pt-safe { padding-top: env(safe-area-inset-top, 44px); } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface font-body-md text-body-md antialiased min-h-screen flex flex-col selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(15,29,41,0.04)] pt-safe"><div class="h-28 px-margin flex flex-col justify-between py-space-xs"><div class="flex items-center justify-between text-on-surface px-space-xs"><span class="font-label-sm text-label-sm tracking-tight font-semibold">9:41</span><div class="h-4 w-28 bg-on-surface rounded-full mx-auto self-center"></div><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span><span class="material-symbols-outlined text-[14px]">wifi</span><span class="material-symbols-outlined text-[16px]">battery_full</span></div></div><div class="flex items-center justify-between gap-space-sm pb-space-xs"><div class="flex items-center gap-space-sm"><img alt="MamAmie Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XC3sCc8rII8X3HseQdmdZedOaLGQxf9QIfVt2Oh2i3o_3u_ZMQnLejMmm8arU71I2HBtR6tQrYeS30w-j-G5a7GqM_OOchdl5w75UCHw0XY26jeIxhp2Bz2_fmszMFmoKOu4laKDX5O9WTi8LCE0sNdiEq7IYe-Ou-OD_D_OEohO5RCnVdSOG4Bw6Pzunq54ZZVHd3kh0BAQ5OQ8RVyTFB8Xym_IiNwZK8KwzniAk7kJ9GfOK3b2sbBtU"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">MamAmie</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Home</span></div></div><div class="flex items-center gap-space-sm"><button class="min-h-[44px] px-space-sm py-1 bg-surface-container-high rounded-full flex items-center gap-1 active:scale-95 transition-transform" type="button"><span class="font-label-sm text-label-sm text-primary font-semibold">Pregnancy W24</span><span class="material-symbols-outlined text-[16px] text-primary">keyboard_arrow_down</span></button><a class="min-h-[44px] px-space-sm py-1 bg-error-container text-on-error-container rounded-full flex items-center gap-1 shadow-sm active:scale-95 transition-transform" data-path="emergency-telemetry" href="#"><span class="material-symbols-outlined text-[14px] text-error fill-1 animate-pulse">e911_emergency</span><span class="font-label-sm text-label-sm font-semibold tracking-wide">SOS</span></a><button class="min-h-[44px] min-w-[44px] flex items-center justify-center" type="button"><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.08)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABJugMMBSW9A1itUQPJVSkidglIL8fKdYLImu1UFhWq3cTWwRDahIExH6EY4bvjqph7Og6EgKKhMpVG7yXdTBPJDmP8reQfa0e0C0TSAbfABv4g23f0TrdJL5qPijKPEiiZHWgrd6i1n4D3JCZq9i5hJt82Srq-hybADNBCb3keG2mSutbFpNkGBF82SOP5S743ReIizbscSj2o0YFcSPmc0cQNDnf6BhhN_HAxPM-k-xriI9xZefW"/></button></div></div></div></header><main class="flex flex-col flex-1 relative w-full px-margin pt-28 pb-32 bg-surface"><div class="flex flex-col w-full space-y-space-lg">
+<!-- 1. Top Section: Greeting & Date Strip -->
+<section class="flex flex-col space-y-space-md">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Morning Sanctuary</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-bold tracking-tight mt-0.5">Good morning, Elena</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Week 24 • Day 3 • Second Trimester</p>
+</div>
+<button aria-label="Toggle Audio Guide" class="min-w-[44px] min-h-[44px] rounded-full bg-surface-container-high flex items-center justify-center text-primary shadow-sm active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">spa</span>
+</button>
+</div>
+<!-- Interactive Progress Ring & Milestone Card -->
+<div class="bg-surface-container-lowest rounded-lg p-space-lg shadow-[0px_8px_24px_-4px_rgba(45,58,71,0.05)] relative overflow-hidden transition-all">
+<div class="flex items-center justify-between gap-space-md">
+<!-- SVG Progress Ring (60% Progress) -->
+<div aria-expanded="false" class="relative flex items-center justify-center flex-shrink-0 cursor-pointer group" id="ringTrigger" role="button" tabindex="0">
+<svg class="w-28 h-28 transform -rotate-90" viewbox="0 0 100 100">
+<!-- Background track -->
+<circle class="text-surface-container" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" stroke-width="8"></circle>
+<!-- Animated progress line (circumference ~ 263.89, 60% = 158.33 stroke-dasharray) -->
+<circle class="transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" id="journeyCircle" r="42" stroke="#8b4850" stroke-dasharray="263.89" stroke-dashoffset="105.5" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-headline-md text-headline-md text-on-surface font-bold">60%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">complete</span>
+</div>
+</div>
+<!-- Baby Size & Days remaining -->
+<div class="flex flex-col flex-1 min-w-0">
+<div class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-secondary-container text-on-secondary-container w-fit mb-1">
+<span class="material-symbols-outlined text-[14px]">cloud_download</span>
+<span class="font-label-sm text-label-sm font-semibold">112 days to go</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">Sweet Cantaloupe</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Approx. 30 cm long • 600g</p>
+<div class="flex items-center gap-1.5 mt-space-sm text-primary font-label-sm text-label-sm font-medium">
+<span>View trimester roadmap</span>
+<span class="material-symbols-outlined text-[16px] transition-transform" id="arrowIcon">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Expandable Trimester Breakdown -->
+<div class="hidden pt-space-md mt-space-md border-t-0 space-y-space-sm" id="trimesterBreakdown">
+<div class="grid grid-cols-3 gap-space-xs text-center">
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-secondary font-bold">Tri 1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">W1–12</span>
+<span class="material-symbols-outlined text-[16px] text-secondary mt-1">check_circle</span>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-primary-fixed/40 flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-primary font-bold">Tri 2</span>
+<span class="font-label-sm text-label-sm text-primary">W13–27</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold mt-1">Current</span>
+</div>
+<div class="p-space-sm rounded-DEFAULT bg-surface-container-low flex flex-col items-center opacity-60">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">Tri 3</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">W28–40</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant mt-1">schedule</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-center pt-1">Rapid auditory reflex and surfactant synthesis stage</p>
+</div>
+</div>
+<!-- Horizontal Date Strip -->
+<div class="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none -mx-margin px-margin">
+<!-- Mon 14 -->
+<button class="flex flex-col items-center justify-center min-w-[50px] h-[72px] rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-sm active:scale-95 transition-all" type="button">
+<span class="font-label-sm text-label-sm font-medium">Mon</span>
+<span class="font-headline-sm text-headline-sm font-semibold mt-1">14</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container mt-1"></span>
+</button>
+<!-- Tue 15 -->
+<button class="flex flex-col items-center justify-center min-w-[50px] h-[72px] rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-sm active:scale-95 transition-all" type="button">
+<span class="font-label-sm text-label-sm font-medium">Tue</span>
+<span class="font-headline-sm text-headline-sm font-semibold mt-1">15</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container mt-1"></span>
+</button>
+<!-- Wed 16 -->
+<button class="flex flex-col items-center justify-center min-w-[50px] h-[72px] rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-sm active:scale-95 transition-all" type="button">
+<span class="font-label-sm text-label-sm font-medium">Wed</span>
+<span class="font-headline-sm text-headline-sm font-semibold mt-1">16</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container mt-1"></span>
+</button>
+<!-- Thu 17 (Today - Active) -->
+<button class="flex flex-col items-center justify-center min-w-[52px] h-[76px] rounded-2xl bg-primary text-on-primary shadow-[0_8px_18px_rgba(139,72,80,0.3)] active:scale-95 transition-all" type="button">
+<span class="font-label-sm text-label-sm font-bold opacity-90">Thu</span>
+<span class="font-headline-sm text-headline-sm font-bold mt-1">17</span>
+<span class="w-1.5 h-1.5 rounded-full bg-on-primary mt-1"></span>
+</button>
+<!-- Fri 18 -->
+<button class="flex flex-col items-center justify-center min-w-[50px] h-[72px] rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-sm active:scale-95 transition-all" type="button">
+<span class="font-label-sm text-label-sm font-medium">Fri</span>
+<span class="font-headline-sm text-headline-sm font-semibold mt-1">18</span>
+<span class="w-1.5 h-1.5 rounded-full bg-transparent mt-1"></span>
+</button>
+<!-- Sat 19 -->
+<button class="flex flex-col items-center justify-center min-w-[50px] h-[72px] rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-sm active:scale-95 transition-all" type="button">
+<span class="font-label-sm text-label-sm font-medium">Sat</span>
+<span class="font-headline-sm text-headline-sm font-semibold mt-1">19</span>
+<span class="w-1.5 h-1.5 rounded-full bg-transparent mt-1"></span>
+</button>
+<!-- Sun 20 -->
+<button class="flex flex-col items-center justify-center min-w-[50px] h-[72px] rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-sm active:scale-95 transition-all" type="button">
+<span class="font-label-sm text-label-sm font-medium">Sun</span>
+<span class="font-headline-sm text-headline-sm font-semibold mt-1">20</span>
+<span class="w-1.5 h-1.5 rounded-full bg-transparent mt-1"></span>
+</button>
+</div>
+</section>
+<!-- 2. Baby Development & Clinical Insight Card -->
+<section class="bg-gradient-to-br from-tertiary-fixed/30 to-surface-container-lowest rounded-lg p-space-lg shadow-[0px_8px_24px_-4px_rgba(45,58,71,0.05)] relative overflow-hidden">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary flex-shrink-0">
+<span class="material-symbols-outlined text-[26px]">hearing</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-primary font-bold uppercase tracking-wider">Milestone Alert</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold mt-0.5">Hearing Your World</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 leading-relaxed">
+          Baby can now recognize your voice and hear maternal heartbeats! Gentle talking, singing, and rhythmic melodies comfort their developing sensory cortex.
+        </p>
+<!-- Dynamic Expandable Clinical Guide -->
+<button class="mt-space-md inline-flex items-center justify-between px-space-md py-space-sm bg-surface-container-lowest rounded-full text-on-surface font-label-md text-label-md font-semibold shadow-sm active:scale-98 transition-all" id="toggleClinical" type="button">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">menu_book</span>
+<span>Clinical guide for Week 24</span>
+</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" id="guideChevron">expand_more</span>
+</button>
+<div class="hidden mt-space-sm p-space-md bg-surface-container-lowest rounded-2xl space-y-space-xs text-on-surface-variant font-body-sm text-body-sm" id="clinicalGuideContent">
+<p class="font-semibold text-on-surface">Key anatomical milestones this week:</p>
+<ul class="list-disc list-inside space-y-1 pl-1">
+<li>Inner ear cochlea is completely structurally developed.</li>
+<li>Taste buds continue to develop along the tongue surface.</li>
+<li>Capillaries are forming in the lungs to prepare for oxygenation.</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Priority Alerts & Appointment Countdown -->
+<section class="bg-surface-container-lowest rounded-lg p-space-md shadow-[0px_8px_24px_-4px_rgba(45,58,71,0.05)] flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-2xl bg-secondary-container flex items-center justify-center text-on-secondary-container flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">event</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold">In 4 days</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tue • 10:30 AM</span>
+</div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold truncate mt-0.5">Glucose Screening &amp; Ultrasound</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Dr. Sarah Chen, OB-GYN</p>
+</div>
+</div>
+<button aria-label="Appointment details" class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-surface-container-high text-primary active:scale-95 transition-transform flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</section>
+<!-- 4. Daily Maternal Routine & Interactive Checklist -->
+<section class="flex flex-col space-y-space-sm">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Today's Care Routine</h3>
+<span class="font-label-sm text-label-sm text-secondary font-bold" id="routineCounter">1 of 3 Complete</span>
+</div>
+<div class="space-y-space-xs">
+<!-- Item 1: Complete -->
+<div class="routine-item bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex items-center justify-between transition-all" data-id="1">
+<div class="flex items-center gap-space-md min-w-0">
+<button aria-pressed="true" class="check-toggle min-w-[36px] min-h-[36px] rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px] check-icon">check</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="item-title font-label-lg text-label-lg text-on-surface font-semibold line-through opacity-70">Prenatal Vitamin &amp; DHA</span>
+<span class="item-desc font-body-sm text-body-sm text-secondary font-medium">Logged at 8:15 AM</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">verified</span>
+</div>
+<!-- Item 2: Pending Movement -->
+<div class="routine-item bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex items-center justify-between transition-all" data-id="2">
+<div class="flex items-center gap-space-md min-w-0">
+<button aria-pressed="false" class="check-toggle min-w-[36px] min-h-[36px] rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px] check-icon hidden">check</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="item-title font-label-lg text-label-lg text-on-surface font-semibold">15-min Pelvic Floor Movement</span>
+<span class="item-desc font-body-sm text-body-sm text-on-surface-variant">Recommended before lunch</span>
+</div>
+</div>
+<button class="px-space-sm py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold active:scale-95 transition-transform" type="button">
+          Start
+        </button>
+</div>
+<!-- Item 3: Pending Check -->
+<div class="routine-item bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex items-center justify-between transition-all" data-id="3">
+<div class="flex items-center gap-space-md min-w-0">
+<button aria-pressed="false" class="check-toggle min-w-[36px] min-h-[36px] rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px] check-icon hidden">check</span>
+</button>
+<div class="flex flex-col min-w-0">
+<span class="item-title font-label-lg text-label-lg text-on-surface font-semibold">Evening Blood Pressure Check</span>
+<span class="item-desc font-body-sm text-body-sm text-on-surface-variant">Rest 5 mins prior • Target &lt; 120/80</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">monitor_heart</span>
+</div>
+</div>
+</section>
+<!-- 5. Hydration & Nutrition Quick Glance -->
+<section class="bg-surface-container-lowest rounded-lg p-space-lg shadow-[0px_8px_24px_-4px_rgba(45,58,71,0.05)]">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">water_drop</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Hydration Balance</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Daily Goal: 2,500 mL</span>
+</div>
+<div class="flex items-center justify-between gap-space-md">
+<!-- Water Ring Gauge -->
+<div class="relative flex items-center justify-center flex-shrink-0">
+<svg class="w-24 h-24 transform -rotate-90" viewbox="0 0 100 100">
+<circle class="text-surface-container" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="transition-all duration-500 ease-out" cx="50" cy="50" fill="transparent" id="waterProgress" r="40" stroke="#76525c" stroke-dasharray="251.32" stroke-dashoffset="75.4" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold" id="waterPercentage">70%</span>
+</div>
+</div>
+<div class="flex flex-col flex-1 justify-center">
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-bold" id="currentWater">1,750</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ 2,500 mL</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Hydration sustains amniotic fluid levels.</p>
+<!-- Quick Log Pills -->
+<div class="flex items-center gap-2 mt-space-sm">
+<button class="min-h-[44px] px-space-md py-1.5 rounded-full bg-surface-container-high text-primary font-label-md text-label-md font-semibold active:scale-95 transition-transform flex items-center gap-1" id="add250" type="button">
+<span>+250 mL</span>
+</button>
+<button class="min-h-[44px] px-space-md py-1.5 rounded-full bg-surface-container-high text-primary font-label-md text-label-md font-semibold active:scale-95 transition-transform flex items-center gap-1" id="add500" type="button">
+<span>+500 mL</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. Daily Quick Log Grid -->
+<section class="flex flex-col space-y-space-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Active Telemetry</h3>
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- Tile 1: Kick Counter -->
+<button class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col text-left active:scale-97 transition-all group" type="button">
+<div class="w-10 h-10 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary mb-space-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">footprint</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Kick Counter</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Active 42m ago</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold mt-space-xs">10 kicks / 18 min</span>
+</button>
+<!-- Tile 2: Contraction Timer -->
+<button class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col text-left active:scale-97 transition-all group" type="button">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center text-primary mb-space-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">timer</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Contraction Timer</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Resting mode</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold mt-space-xs">Tap to log wave</span>
+</button>
+<!-- Tile 3: Symptom Log -->
+<button class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col text-left active:scale-97 transition-all group" type="button">
+<div class="w-10 h-10 rounded-xl bg-secondary-fixed flex items-center justify-center text-secondary mb-space-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">stethoscope</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Symptom Log</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Heartburn (mild)</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold mt-space-xs">+ Update notes</span>
+</button>
+<!-- Tile 4: Scan Lab Report -->
+<button class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col text-left active:scale-97 transition-all group" type="button">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary mb-space-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">document_scanner</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Scan Lab Report</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">OCR AI Ready</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold mt-space-xs">Fast Vault Sync</span>
+</button>
+</div>
+</section>
+<!-- 7. Daily Affirmation & Safe Knowledge -->
+<section class="bg-surface-container-lowest rounded-lg p-space-lg shadow-[0px_8px_24px_-4px_rgba(45,58,71,0.05)] space-y-space-md">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">format_quote</span>
+<span class="font-label-sm text-label-sm text-primary font-bold uppercase tracking-wider">Maternal Affirmation</span>
+</div>
+<button aria-label="Bookmark quote" class="min-w-[44px] min-h-[44px] -mr-2 -mt-2 flex items-center justify-center text-outline active:scale-90 transition-transform" id="bookmarkBtn" type="button">
+<span class="material-symbols-outlined text-[20px]" id="bookmarkIcon">bookmark_border</span>
+</button>
+</div>
+<blockquote class="font-headline-sm text-headline-sm text-on-surface font-semibold italic leading-snug">
+      “Your body is doing miraculous, invisible work today. Rest is not an indulgence; rest is productive labor.”
+    </blockquote>
+<!-- Clinical safe-read article preview -->
+<a class="flex items-center gap-space-md p-space-md rounded-2xl bg-surface-container-low active:bg-surface-container transition-colors" href="#">
+<div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A gentle, warm-lit photograph of a serene expectant mother comfortably resting on linen cushions with soft morning sunbeams illuminating her silhouette. The composition exudes calm, scientific reassurance, styled in soft rosewood, blush petal, and soothing neutral hues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTbpObB-5hS7xwhBFOhgg_p5UMC_MvNS8dhNMERAj1MmZyFVC4x_UU9j2aWq0-mM3uV5tDHLQeXaR1ibtE81Hvku45Pj6VaeYhbgowFybADkvnLBr_EDv2p9IGH3VOyzEItyNeKOikDGqwwAC55D2-wL4Dc-xXfuNBCs1mZ4WB_WcnqI63vk1b9tfVXDN_C_laErkYzfaF_fD8vkFatUFEc4mr5K8CDJgNZKUMqnVk-Yt6splsafPP"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-primary font-bold">2-min read • Trimester 2</span>
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold leading-tight mt-0.5">Managing Round Ligament Pain Safely</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate mt-0.5">Physiotherapist-approved gentle posture adjustments.</p>
+</div>
+</a>
+</section>
+</div>
+<script>
+  (function() {
+    // 1. Interactive Trimester Breakdown toggle
+    const ringTrigger = document.getElementById('ringTrigger');
+    const trimesterBreakdown = document.getElementById('trimesterBreakdown');
+    const arrowIcon = document.getElementById('arrowIcon');
+
+    if (ringTrigger && trimesterBreakdown && arrowIcon) {
+      ringTrigger.addEventListener('click', function() {
+        const isHidden = trimesterBreakdown.classList.contains('hidden');
+        if (isHidden) {
+          trimesterBreakdown.classList.remove('hidden');
+          arrowIcon.style.transform = 'rotate(180deg)';
+          ringTrigger.setAttribute('aria-expanded', 'true');
+        } else {
+          trimesterBreakdown.classList.add('hidden');
+          arrowIcon.style.transform = 'rotate(0deg)';
+          ringTrigger.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    // 2. Expandable Clinical Guide
+    const toggleClinical = document.getElementById('toggleClinical');
+    const clinicalContent = document.getElementById('clinicalGuideContent');
+    const guideChevron = document.getElementById('guideChevron');
+
+    if (toggleClinical && clinicalContent && guideChevron) {
+      toggleClinical.addEventListener('click', function() {
+        const isClosed = clinicalContent.classList.contains('hidden');
+        if (isClosed) {
+          clinicalContent.classList.remove('hidden');
+          guideChevron.style.transform = 'rotate(180deg)';
+        } else {
+          clinicalContent.classList.add('hidden');
+          guideChevron.style.transform = 'rotate(0deg)';
+        }
+      });
+    }
+
+    // 3. Interactive Checklist State Handler
+    const routineItems = document.querySelectorAll('.routine-item');
+    const routineCounter = document.getElementById('routineCounter');
+
+    function updateCounter() {
+      let completed = 0;
+      routineItems.forEach(item => {
+        const btn = item.querySelector('.check-toggle');
+        if (btn && btn.getAttribute('aria-pressed') === 'true') {
+          completed++;
+        }
+      });
+      if (routineCounter) {
+        routineCounter.textContent = `${completed} of ${routineItems.length} Complete`;
+      }
+    }
+
+    routineItems.forEach(item => {
+      const toggle = item.querySelector('.check-toggle');
+      const title = item.querySelector('.item-title');
+      const desc = item.querySelector('.item-desc');
+      const icon = item.querySelector('.check-icon');
+
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          const isPressed = toggle.getAttribute('aria-pressed') === 'true';
+          if (isPressed) {
+            toggle.setAttribute('aria-pressed', 'false');
+            toggle.className = 'check-toggle min-w-[36px] min-h-[36px] rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center transition-colors';
+            if (icon) icon.classList.add('hidden');
+            if (title) title.classList.remove('line-through', 'opacity-70');
+            if (desc) desc.className = 'item-desc font-body-sm text-body-sm text-on-surface-variant';
+          } else {
+            toggle.setAttribute('aria-pressed', 'true');
+            toggle.className = 'check-toggle min-w-[36px] min-h-[36px] rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center transition-colors';
+            if (icon) icon.classList.remove('hidden');
+            if (title) title.classList.add('line-through', 'opacity-70');
+            if (desc) {
+              desc.className = 'item-desc font-body-sm text-body-sm text-secondary font-medium';
+              desc.textContent = 'Completed just now';
+            }
+          }
+          updateCounter();
+        });
+      }
+    });
+
+    // 4. Hydration Water Tracker Counter & Dynamic SVG Update
+    let currentMl = 1750;
+    const maxMl = 2500;
+    const circumference = 251.32; // 2 * pi * 40
+
+    const currentWaterEl = document.getElementById('currentWater');
+    const waterPercentageEl = document.getElementById('waterPercentage');
+    const waterProgress = document.getElementById('waterProgress');
+    const add250Btn = document.getElementById('add250');
+    const add500Btn = document.getElementById('add500');
+
+    function updateWaterDisplay() {
+      if (currentWaterEl) currentWaterEl.textContent = currentMl.toLocaleString();
+      const pct = Math.min(Math.round((currentMl / maxMl) * 100), 100);
+      if (waterPercentageEl) waterPercentageEl.textContent = `${pct}%`;
+      if (waterProgress) {
+        const offset = circumference - (circumference * (pct / 100));
+        waterProgress.style.strokeDashoffset = offset;
+      }
+    }
+
+    if (add250Btn) {
+      add250Btn.addEventListener('click', function() {
+        currentMl = Math.min(currentMl + 250, 3500);
+        updateWaterDisplay();
+      });
+    }
+
+    if (add500Btn) {
+      add500Btn.addEventListener('click', function() {
+        currentMl = Math.min(currentMl + 500, 3500);
+        updateWaterDisplay();
+      });
+    }
+
+    // 5. Bookmark Affirmation Micro-interaction
+    const bookmarkBtn = document.getElementById('bookmarkBtn');
+    const bookmarkIcon = document.getElementById('bookmarkIcon');
+    let isBookmarked = false;
+
+    if (bookmarkBtn && bookmarkIcon) {
+      bookmarkBtn.addEventListener('click', function() {
+        isBookmarked = !isBookmarked;
+        if (isBookmarked) {
+          bookmarkIcon.textContent = 'bookmark';
+          bookmarkIcon.style.fontVariationSettings = "'FILL' 1";
+          bookmarkBtn.classList.remove('text-outline');
+          bookmarkBtn.classList.add('text-primary');
+        } else {
+          bookmarkIcon.textContent = 'bookmark_border';
+          bookmarkIcon.style.fontVariationSettings = "'FILL' 0";
+          bookmarkBtn.classList.add('text-outline');
+          bookmarkBtn.classList.remove('text-primary');
+        }
+      });
+    }
+  })();
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-4px_24px_rgba(15,29,41,0.06)]" data-active-classes="text-primary font-bold"><div class="relative flex justify-around items-center h-20 px-space-xs max-w-md mx-auto"><a aria-current="page" class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 transition-colors text-primary font-bold" data-path="home" href="#"><span class="material-symbols-outlined text-[24px]">home</span><span class="font-label-sm text-label-sm mt-0.5">Home</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 text-on-surface-variant transition-colors" data-path="vital-track" href="#"><span class="material-symbols-outlined text-[24px]">insights</span><span class="font-label-sm text-label-sm mt-0.5">Track</span></a><div class="relative flex flex-col items-center justify-center -top-4"><a class="w-14 h-14 rounded-full bg-primary text-on-primary shadow-[0_8px_20px_rgba(139,72,80,0.35)] flex items-center justify-center active:scale-95 transition-transform" data-path="quick-log" href="#"><span class="material-symbols-outlined text-[30px]">add</span></a><span class="font-label-sm text-label-sm text-on-surface-variant mt-1 font-medium">Log</span></div><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 text-on-surface-variant transition-colors" data-path="medical-vault" href="#"><span class="material-symbols-outlined text-[24px]">folder_special</span><span class="font-label-sm text-label-sm mt-0.5">Vault</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 text-on-surface-variant transition-colors" data-path="compassionate-ai" href="#"><span class="material-symbols-outlined text-[24px]">auto_awesome</span><span class="font-label-sm text-label-sm mt-0.5">Ask</span></a><a class="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] w-14 text-on-surface-variant transition-colors" data-path="community-circle" href="#"><span class="material-symbols-outlined text-[24px]">favorite</span><span class="font-label-sm text-label-sm mt-0.5">Circle</span></a></div></nav></body></html>
