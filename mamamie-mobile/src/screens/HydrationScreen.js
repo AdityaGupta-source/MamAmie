@@ -4,6 +4,8 @@ import Svg, { Path } from 'react-native-svg';
 import { Colors, Fonts, Radius, Shadow } from '../constants/theme';
 import { usePersistentState } from '../constants/storage';
 import { Icon, T, Pill, ProgressRing } from '../components/ui';
+import { useOnboarding } from '../stores/onboardingStore';
+import { stagePillLabel } from '../services/pregnancyDating';
 
 const PRESETS = [
   { ml: 200, label: 'Small Glass', icon: 'local-cafe', bg: Colors.surfaceContainer, color: Colors.primary, kind: 'water' },
@@ -33,6 +35,7 @@ const TARGETS = [2000, 2500, 3000];
 const DEFAULT = { intake: 1750, logs: [], byKind: { water: 1250, electrolyte: 250, tea: 250 } };
 
 export default function HydrationScreen() {
+  const { profile } = useOnboarding();
   const [data, setData] = usePersistentState('hydration', DEFAULT);
   const [target, setTarget] = usePersistentState('hydration_target', 2500);
   const [custom, setCustom] = useState(150);
@@ -80,7 +83,7 @@ export default function HydrationScreen() {
               <View style={styles.badgeIcon}><Icon name="water-drop" size={16} color={Colors.onSecondaryContainer} /></View>
               <T v="labelMd" color={Colors.secondary} style={{ letterSpacing: 1 }}>CLINICAL HYDRATION</T>
             </View>
-            <Pill label="Trimester 2 (W22)" dot={Colors.secondary} bg={Colors.surfaceContainerHigh} color={Colors.onSurface} />
+            <Pill label={stagePillLabel(profile)} dot={Colors.secondary} bg={Colors.surfaceContainerHigh} color={Colors.onSurface} />
           </View>
           <T v="headlineLg">Hydration & Electrolytes</T>
           <T v="bodySm" color={Colors.onSurfaceVariant}>

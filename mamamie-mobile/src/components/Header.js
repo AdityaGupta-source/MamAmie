@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Modal, Image } from 'react-native';
 import { Colors, Radius, Shadow } from '../constants/theme';
 import { Icon, T, Logo } from './ui';
+import { useOnboarding } from '../stores/onboardingStore';
+import { stagePillLabel } from '../services/pregnancyDating';
 
-const profile = require('../../assets/images/profile.jpg');
+const avatar = require('../../assets/images/profile.jpg');
 
 const SOS_OPTIONS = [
   {
@@ -19,7 +21,8 @@ const SOS_OPTIONS = [
 
 // variant "main": logo + section subtitle + pregnancy pill + SOS + avatar
 // variant "back": back arrow + logo + title + avatar (Quick Log)
-export default function Header({ section, variant = 'main', title, onBack }) {
+export default function Header({ section, variant = 'main', title, onBack, onProfile }) {
+  const { profile } = useOnboarding();
   const [sosOpen, setSosOpen] = useState(false);
   const [sent, setSent] = useState(null);
 
@@ -52,8 +55,8 @@ export default function Header({ section, variant = 'main', title, onBack }) {
         <View style={styles.row}>
           {variant === 'main' && (
             <>
-              <TouchableOpacity style={styles.stagePill} activeOpacity={0.8}>
-                <T v="labelSm" color={Colors.primary} style={styles.semibold}>Pregnancy W24</T>
+              <TouchableOpacity style={styles.stagePill} activeOpacity={0.8} onPress={onProfile} accessibilityLabel="Your journey stage">
+                <T v="labelSm" color={Colors.primary} style={styles.semibold}>{stagePillLabel(profile)}</T>
                 <Icon name="keyboard-arrow-down" size={16} color={Colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.sosPill} activeOpacity={0.8} onPress={() => setSosOpen(true)}>
@@ -62,7 +65,9 @@ export default function Header({ section, variant = 'main', title, onBack }) {
               </TouchableOpacity>
             </>
           )}
-          <Image source={profile} style={styles.avatar} />
+          <TouchableOpacity onPress={onProfile} accessibilityLabel="Open profile">
+            <Image source={avatar} style={styles.avatar} />
+          </TouchableOpacity>
         </View>
       </View>
 
