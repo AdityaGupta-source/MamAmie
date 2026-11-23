@@ -1,15 +1,16 @@
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { Colors, Fonts, Radius, Shadow } from '../constants/theme';
-import { usePersistentState } from '../constants/storage';
-import { Icon, T, Card, Pill, ProgressRing } from '../components/ui';
-import { useOnboarding } from '../stores/onboardingStore';
-import { pregnancyStatus, postpartumStatus, TRIMESTER_NAMES } from '../services/pregnancyDating';
-import { toDayKey, addDays, fromDayKey, formatDayKey } from '../services/dayKey';
-import JourneyCard from '../features/home/JourneyCard';
-import WeekInsightCard from '../features/home/WeekInsightCard';
+import { Colors, Fonts, Radius, Shadow } from '../../constants/theme';
+import { usePersistentState } from '../../stores/usePersistentState';
+import { useHydration } from '../../stores/hydrationStore';
+import { Icon, T, Card, Pill, ProgressRing } from '../../components/ui';
+import { useOnboarding } from '../../stores/onboardingStore';
+import { pregnancyStatus, postpartumStatus, TRIMESTER_NAMES } from '../../services/pregnancyDating';
+import { toDayKey, addDays, fromDayKey, formatDayKey } from '../../services/dayKey';
+import JourneyCard from './JourneyCard';
+import WeekInsightCard from './WeekInsightCard';
 
-const article = require('../../assets/images/article.jpg');
+const article = require('../../../assets/images/article.jpg');
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -44,7 +45,6 @@ const TILES = [
   { icon: 'document-scanner', iconBg: Colors.surfaceContainerHigh, iconColor: Colors.primary, title: 'Scan Lab Report', sub: 'OCR AI Ready', foot: 'Fast Vault Sync', footColor: Colors.secondary, go: 'vault' },
 ];
 
-const GOAL = 2500;
 
 export default function HomeScreen({ onNavigate, onEditProfile }) {
   const { profile } = useOnboarding();
@@ -63,17 +63,12 @@ export default function HomeScreen({ onNavigate, onEditProfile }) {
   }
 
   const [done, setDone] = usePersistentState('routine', [1]);
-  const [hydration, setHydration] = usePersistentState('hydration', { intake: 1750, logs: [] });
+  const { state: hydration, log: logWater } = useHydration();
+  const GOAL = hydration.target;
   const [bookmarked, setBookmarked] = usePersistentState('affirmation_saved', false);
 
   const toggle = (id) => setDone((d) => (d.includes(id) ? d.filter((x) => x !== id) : [...d, id]));
-  const addWater = (ml) =>
-    setHydration((h) => ({
-      ...h,
-      intake: h.intake + ml,
-      byKind: h.byKind ? { ...h.byKind, water: (h.byKind.water || 0) + ml } : h.byKind,
-      logs: [{ ml, label: ml === 250 ? 'Standard Mug' : 'Sports Tumbler', at: Date.now() }, ...(h.logs || [])],
-    }));
+  const addWater = (ml) => logWater(ml, ml === 250 ? 'Standard Mug' : 'Sports Tumbler');
   const pct = Math.round((hydration.intake / GOAL) * 100);
 
   return (
@@ -179,7 +174,7 @@ export default function HomeScreen({ onNavigate, onEditProfile }) {
             <Icon name="water-drop" size={22} color={Colors.primary} />
             <T v="headlineSm">Hydration Balance</T>
           </View>
-          <T v="labelSm" color={Colors.onSurfaceVariant}>Daily Goal: 2,500 mL</T>
+          <T v="labelSm" color={Colors.onSurfaceVariant}>Daily Goal: {GOAL.toLocaleString()} mL</T>
         </View>
         <View style={styles.row16}>
           <ProgressRing size={96} stroke={8} progress={hydration.intake / GOAL} color={Colors.primary} track={Colors.surfaceContainer}>
@@ -188,7 +183,7 @@ export default function HomeScreen({ onNavigate, onEditProfile }) {
           <View style={{ flex: 1 }}>
             <View style={styles.baseline}>
               <T v="headlineLg">{hydration.intake.toLocaleString()}</T>
-              <T v="bodySm" color={Colors.onSurfaceVariant}>/ 2,500 mL</T>
+              <T v="bodySm" color={Colors.onSurfaceVariant}>/ {GOAL.toLocaleString()} mL</T>
             </View>
             <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 2 }}>Hydration sustains amniotic fluid levels.</T>
             <View style={[styles.row8, { marginTop: 8 }]}>

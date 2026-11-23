@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mamamie-mobile",
+    "name": "MamAmie",
     "slug": "mamamie-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,7 +21,10 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-router",
+      "expo-splash-screen"
+    ],
+    "scheme": "mamamie"
   }
 }

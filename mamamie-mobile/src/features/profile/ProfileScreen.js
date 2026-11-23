@@ -4,6 +4,7 @@ import { Colors, Fonts, Radius, Shadow } from '../../constants/theme';
 import { T, Icon, Pill } from '../../components/ui';
 import { PrimaryButton, SecondaryButton } from '../../components/forms';
 import { useOnboarding } from '../../stores/onboardingStore';
+import { useHydration } from '../../stores/hydrationStore';
 import { STAGES, DIETS, REMINDERS, CARE_STATUSES, MULTIPLE_TYPES } from '../../models/onboarding';
 import { pregnancyStatus, postpartumStatus, TRIMESTER_NAMES, ageFromDob } from '../../services/pregnancyDating';
 import { formatDayKey } from '../../services/dayKey';
@@ -38,6 +39,7 @@ function Section({ title, children }) {
 
 export default function ProfileScreen({ onEdit, onCleared }) {
   const { profile, resetAll } = useOnboarding();
+  const hydration = useHydration();
   const [confirm, setConfirm] = useState(false);
   if (!profile) return null;
 
@@ -107,6 +109,7 @@ export default function ProfileScreen({ onEdit, onCleared }) {
               style={{ backgroundColor: Colors.error, shadowColor: Colors.error }}
               onPress={async () => {
                 setConfirm(false);
+                hydration.reset();
                 await resetAll();
                 onCleared?.();
               }}

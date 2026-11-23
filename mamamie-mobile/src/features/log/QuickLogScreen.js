@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Modal, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { Colors, Fonts, Radius, Shadow } from '../constants/theme';
-import { usePersistentState } from '../constants/storage';
-import { Icon, T, Pill, ProgressRing } from '../components/ui';
-import { useOnboarding } from '../stores/onboardingStore';
-import { stagePillLabel } from '../services/pregnancyDating';
+import { Colors, Fonts, Radius, Shadow } from '../../constants/theme';
+import { useHydration, HYDRATION_DEFAULT } from '../../stores/hydrationStore';
+import { Icon, T, Pill, ProgressRing } from '../../components/ui';
+import { useOnboarding } from '../../stores/onboardingStore';
+import { stagePillLabel } from '../../services/pregnancyDating';
 
 const PRESETS = [
   { ml: 200, label: 'Small Glass', icon: 'local-cafe', bg: Colors.surfaceContainer, color: Colors.primary, kind: 'water' },
@@ -32,19 +32,18 @@ const HOURLY = [
 ];
 
 const TARGETS = [2000, 2500, 3000];
-const DEFAULT = { intake: 1750, logs: [], byKind: { water: 1250, electrolyte: 250, tea: 250 } };
 
-export default function HydrationScreen() {
+export default function QuickLogScreen() {
   const { profile } = useOnboarding();
-  const [data, setData] = usePersistentState('hydration', DEFAULT);
-  const [target, setTarget] = usePersistentState('hydration_target', 2500);
+  const { state: data, log: logDrink, setTarget, startNewDay } = useHydration();
+  const target = data.target;
   const [custom, setCustom] = useState(150);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [targetOpen, setTargetOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const toastAnim = useRef(new Animated.Value(0)).current;
 
-  const byKind = data.byKind || DEFAULT.byKind;
+  const byKind = data.byKind || HYDRATION_DEFAULT.byKind;
   // Entries saved by the old app version have a different shape; skip them.
   const logs = (data.logs || []).filter((l) => l && l.at && l.ml);
   const pct = Math.round((data.intake / target) * 100);
@@ -61,15 +60,7 @@ export default function HydrationScreen() {
   }, [toast, toastAnim]);
 
   const log = (ml, label, kind = 'water') => {
-    setData((d) => {
-      const bk = d.byKind || DEFAULT.byKind;
-      return {
-        ...d,
-        intake: d.intake + ml,
-        byKind: { ...bk, [kind]: (bk[kind] || 0) + ml },
-        logs: [{ ml, label, at: Date.now() }, ...(d.logs || [])].slice(0, 50),
-      };
-    });
+    logDrink(ml, label, kind);
     setToast(`Logged ${ml} mL!`);
   };
 
@@ -291,7 +282,7 @@ export default function HydrationScreen() {
         <TouchableOpacity
           style={[styles.secondaryBtn, { marginTop: 12 }]}
           onPress={() => {
-            setData({ intake: 0, logs: [], byKind: { water: 0, electrolyte: 0, tea: 0 } });
+            startNewDay();
             setHistoryOpen(false);
           }}
         >

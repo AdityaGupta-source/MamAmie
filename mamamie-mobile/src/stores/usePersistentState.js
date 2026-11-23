@@ -1,32 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useRef, useState } from 'react';
 
-const PREFIX = '@mamamie_';
-
-export const StorageService = {
-  async get(key, fallback) {
-    try {
-      const raw = await AsyncStorage.getItem(PREFIX + key);
-      return raw !== null ? JSON.parse(raw) : fallback;
-    } catch {
-      return fallback;
-    }
-  },
-  async set(key, value) {
-    try {
-      await AsyncStorage.setItem(PREFIX + key, JSON.stringify(value));
-    } catch {}
-  },
-};
-
-// useState that loads from and saves to device storage.
+// Screen-local useState that loads from and saves to device storage (key `@mamamie_<key>`).
+// Use a store from createPersistedStore instead when more than one screen shares the data.
 export function usePersistentState(key, initial) {
   const [value, setValue] = useState(initial);
   const loaded = useRef(false);
 
   useEffect(() => {
     let alive = true;
-    StorageService.get(key, initial).then((v) => {
+    AsyncStorage.getItem('@mamamie_' + key).then((raw) => (raw != null ? JSON.parse(raw) : initial)).catch(() => initial).then((v) => {
       if (alive) {
         setValue(v);
         loaded.current = true;
@@ -39,7 +22,7 @@ export function usePersistentState(key, initial) {
   }, [key]);
 
   useEffect(() => {
-    if (loaded.current) StorageService.set(key, value);
+    if (loaded.current) AsyncStorage.setItem('@mamamie_' + key, JSON.stringify(value)).catch(() => {});
   }, [key, value]);
 
   return [value, setValue];

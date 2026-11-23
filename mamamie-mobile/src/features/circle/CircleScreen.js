@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, TextInput, Linking, Pressable } from 'react-native';
-import { Colors, Fonts, Radius } from '../constants/theme';
-import { usePersistentState } from '../constants/storage';
-import { Icon, T, Pill } from '../components/ui';
+import { Colors, Fonts, Radius } from '../../constants/theme';
+import { usePersistentState } from '../../stores/usePersistentState';
+import { Icon, T, Pill } from '../../components/ui';
 
 const cardShadow = {
   shadowColor: '#2d3a47',
@@ -30,7 +30,7 @@ const comfortLabel = (v) => (v <= 2 ? 'Calm' : v <= 4 ? 'Mild Soreness' : v <= 7
 
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
-export default function CareScreen({ amber, setAmber }) {
+export default function CircleScreen({ amber, setAmber }) {
   const [mode, setMode] = usePersistentState('care_mode', 'postpartum');
 
   return (
