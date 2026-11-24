@@ -89,7 +89,15 @@ Read this file before starting any feature. Each phase names the iOS files to po
 
 Build in order; each phase should leave the app working in Expo Go.
 
-### Phase 0 — Foundations (partly done: `dayKey`, `onboardingStore`; Expo Router migration still pending)
+### Phase 0 — Foundations ✅ done (2026-11-23)
+Implemented: Expo Router with `src/app/` (root `_layout.js` loads fonts, providers and gates
+onboarding with `Stack.Protected`; `(main)/_layout.js` renders the Stitch `Header` + `<Slot />` +
+`BottomNav`; routes `/`, `/track`, `/log`, `/vault`, `/ask`, `/circle`, `/profile`, `/edit-profile`,
+`/onboarding`). Screens moved to `src/features/<feature>/`. `createPersistedStore` factory with the first
+shared store (`hydrationStore`), `uiStore` for the amber overlay, `usePersistentState` for screen-local
+state, `services/navigation.js` (`goTab`). Remaining domain stores are created in the phase that first uses them.
+
+Original plan:
 1. Migrate to Expo Router: `src/app/_layout.js` (fonts, SafeAreaProvider, onboarding gate),
    `src/app/(tabs)/_layout.js` using the existing `BottomNav` as a custom tab bar, routes
    `index` (Home), `track`, `log` (modal-style, back header), `vault`, `ask`, `circle`, plus
@@ -148,7 +156,7 @@ Build in order; each phase should leave the app working in Expo Go.
 Turn the centre **+** into an action sheet: Water (current Quick Log screen), Food (Phase 4),
 Kick session, Contraction, Symptom, Medication dose, Journal note, Weight. Each writes to the
 journal/hydration stores so Home and Track update. Move kick + contraction timers out of
-`VitalsScreen.js` into a shared `sessionsStore`.
+`features/track/TrackScreen.js` into a shared `sessionsStore`.
 
 ### Phase 4 — Food scanner (iOS: `Services/MaternalFoodAIService.swift`, `Models/FoodNutritionModels.swift`, `Services/GeminiChatService.swift`, `Food*View.swift`)
 - Photo via `expo-image-picker` (camera or gallery), or text description.
@@ -200,7 +208,7 @@ journal/hydration stores so Home and Track update. Move kick + contraction timer
 - Feeds Track → "Vitals" mode (replace hard-coded 118/76, 78 bpm, sleep, weight).
 
 ### Phase 8 — Circle (postpartum, loss, newborn)
-- UI is already built (`CareScreen.js`). Connect it to profile: default to Postpartum Healing when
+- UI is already built (`features/circle/CircleScreen.js`). Connect it to profile: default to Postpartum Healing when
   stage is postpartum; day count from childbirthDate.
 - Quiet Loss Support must hide pregnancy milestones, kick counters and baby-size content app-wide
   ("Trigger Shield") when enabled — add a profile flag and respect it in Home/Track.

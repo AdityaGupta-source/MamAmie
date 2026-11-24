@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Svg, { Rect, Line, Polyline, Circle } from 'react-native-svg';
-import { Colors, Fonts, Radius, Shadow } from '../constants/theme';
-import { usePersistentState } from '../constants/storage';
-import { Icon, T, Pill } from '../components/ui';
+import { Colors, Fonts, Radius, Shadow } from '../../constants/theme';
+import { usePersistentState } from '../../stores/usePersistentState';
+import { Icon, T, Pill } from '../../components/ui';
 
-const doctor = require('../../assets/images/doctor.jpg');
+const doctor = require('../../../assets/images/doctor.jpg');
 
 const MODES = [
   { key: 'overview', label: 'Overview' },
@@ -31,7 +31,7 @@ const BP_WEEK = [116, 114, 117, 115, 119, 120, 118];
 const pad = (n) => String(n).padStart(2, '0');
 const fmt = (s) => `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
 
-export default function VitalsScreen({ onNavigate }) {
+export default function TrackScreen({ onNavigate }) {
   const [mode, setMode] = useState('overview');
   const [kicks, setKicks] = usePersistentState('kick_session', { count: 10, startedAt: null, elapsed: 1334 });
   const [contractions, setContractions] = usePersistentState('contractions', []);
