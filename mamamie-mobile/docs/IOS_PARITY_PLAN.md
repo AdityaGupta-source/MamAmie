@@ -133,7 +133,7 @@ Original plan:
   "N days to go", header pill "Pregnancy W{X}" / "Postpartum W{X}" / "Planning".
 - Profile screen (avatar tap): summary, edit onboarding, clear all data (confirm dialog).
 
-### Phase 2 — Calendar journal in Track (iOS: `Models/CalendarEntry.swift`, `EntryCategory.swift`, `EntryStatus.swift`, `MedicationModels.swift`, `Services/JournalStore*.swift`, Calendar*/Day*/Entry* views)
+### Phase 2 — Calendar journal in Track — built 2026-11-24, needs device test (iOS: `Models/CalendarEntry.swift`, `EntryCategory.swift`, `EntryStatus.swift`, `MedicationModels.swift`, `Services/JournalStore*.swift`, Calendar*/Day*/Entry* views)
 - Entry shape: `{ id, title, category, dayKey, timeMinutes?, notes, createdAt, modifiedAt, attachments[], medicationId?, appointment?, medicalRecord?, symptom?, food?, journal?, milestone?, task?, weight? }`
 - Categories (label / icon): medication, appointment, test, symptom, food, journal, photo,
   milestone, task. Statuses: appointment `planned | scheduled | completed | rescheduled | cancelled`;
@@ -151,6 +151,12 @@ Original plan:
   Home's "Today's Care Routine" (replace the 3 hard-coded items).
 - **Mood tracker** (Radiant, Calm, Tired, Sensitive, Anxious, Nauseous) and **weight tracker**
   (`DayMoodTrackerView.swift`, `DayWeightTrackerView.swift`) → Track "Vitals" mode weight card uses real entries.
+- Implemented as: `models/journal.js`, `stores/journalStore.js` (indexes by id/day; checkpoints stored as
+  habits + per-day ticks instead of iOS's 30 copied task entries), `services/clinicalSchedule.js`,
+  `stores/useScheduleSync.js` (runs in the `(main)` layout), Track UI in `features/track/`.
+  Deliberate iOS differences: no plan without real dates (iOS assumed week 12), past milestones are
+  not auto-marked completed, and stable ids are `schedule:<milestone>` strings (the iOS hash-based
+  UUID changes every launch). Photo entries wait for the Vault (Phase 6).
 
 ### Phase 3 — Log (+) quick actions
 Turn the centre **+** into an action sheet: Water (current Quick Log screen), Food (Phase 4),

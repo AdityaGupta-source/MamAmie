@@ -5,6 +5,7 @@ import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import { useUi } from '../../stores/uiStore';
 import { goTab, KEY_FOR_PATH } from '../../services/navigation';
+import { useScheduleSync } from '../../stores/useScheduleSync';
 
 const SECTION = {
   home: 'Home',
@@ -22,6 +23,7 @@ export default function MainLayout() {
   const pathname = usePathname();
   const current = KEY_FOR_PATH[pathname] || 'home';
   const { amber } = useUi();
+  useScheduleSync();
 
   // Remember the last main tab so back-arrow screens return to it.
   const lastTab = useRef('home');

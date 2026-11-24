@@ -15,6 +15,7 @@ import {
 import { Colors } from '../constants/theme';
 import { OnboardingProvider, useOnboarding } from '../stores/onboardingStore';
 import { HydrationProvider } from '../stores/hydrationStore';
+import { JournalProvider } from '../stores/journalStore';
 import { UiProvider } from '../stores/uiStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -32,12 +33,14 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <OnboardingProvider>
         <HydrationProvider>
+          <JournalProvider>
           <UiProvider>
             <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
               <StatusBar style="dark" />
               <Gate fontsLoaded={fontsLoaded} />
             </SafeAreaView>
           </UiProvider>
+          </JournalProvider>
         </HydrationProvider>
       </OnboardingProvider>
     </SafeAreaProvider>

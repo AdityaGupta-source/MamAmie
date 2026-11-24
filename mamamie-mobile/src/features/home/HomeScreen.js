@@ -6,7 +6,9 @@ import { useHydration } from '../../stores/hydrationStore';
 import { Icon, T, Card, Pill, ProgressRing } from '../../components/ui';
 import { useOnboarding } from '../../stores/onboardingStore';
 import { pregnancyStatus, postpartumStatus, TRIMESTER_NAMES } from '../../services/pregnancyDating';
-import { toDayKey, addDays, fromDayKey, formatDayKey } from '../../services/dayKey';
+import { toDayKey, addDays, fromDayKey, formatDayKey, daysBetween } from '../../services/dayKey';
+import { useJournal, nextCareEntry, useDayCheckpoints } from '../../stores/journalStore';
+import { formatMinutes } from '../../models/journal';
 import JourneyCard from './JourneyCard';
 import WeekInsightCard from './WeekInsightCard';
 
@@ -32,12 +34,6 @@ function greeting() {
   return { eyebrow: 'EVENING REST', hello: 'Good evening' };
 }
 
-const ROUTINE = [
-  { id: 1, title: 'Prenatal Vitamin & DHA', doneDesc: 'Logged at 8:15 AM', desc: 'Take with breakfast', trailing: 'verified' },
-  { id: 2, title: '15-min Pelvic Floor Movement', desc: 'Recommended before lunch', trailing: 'start' },
-  { id: 3, title: 'Evening Blood Pressure Check', desc: 'Rest 5 mins prior • Target < 120/80', trailing: 'monitor-heart' },
-];
-
 const TILES = [
   { icon: 'footprint', iconBg: Colors.tertiaryFixed, iconColor: Colors.tertiary, title: 'Kick Counter', sub: 'Active 42m ago', foot: '10 kicks / 18 min', footColor: Colors.primary, go: 'track' },
   { icon: 'timer', iconBg: Colors.primaryFixed, iconColor: Colors.primary, title: 'Contraction Timer', sub: 'Resting mode', foot: 'Tap to log wave', footColor: Colors.secondary, go: 'track' },
@@ -45,6 +41,12 @@ const TILES = [
   { icon: 'document-scanner', iconBg: Colors.surfaceContainerHigh, iconColor: Colors.primary, title: 'Scan Lab Report', sub: 'OCR AI Ready', foot: 'Fast Vault Sync', footColor: Colors.secondary, go: 'vault' },
 ];
 
+
+function dueLabel(days) {
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  return `In ${days} days`;
+}
 
 export default function HomeScreen({ onNavigate, onEditProfile }) {
   const { profile } = useOnboarding();
@@ -62,12 +64,13 @@ export default function HomeScreen({ onNavigate, onEditProfile }) {
     subtitle = post ? `Week ${post.week} postpartum • Day ${post.days}` : 'Postpartum • gentle recovery';
   }
 
-  const [done, setDone] = usePersistentState('routine', [1]);
+  const journal = useJournal();
+  const routine = useDayCheckpoints(todayKey, preg?.week ?? null);
+  const nextCare = nextCareEntry(journal, todayKey);
   const { state: hydration, log: logWater } = useHydration();
   const GOAL = hydration.target;
   const [bookmarked, setBookmarked] = usePersistentState('affirmation_saved', false);
 
-  const toggle = (id) => setDone((d) => (d.includes(id) ? d.filter((x) => x !== id) : [...d, id]));
   const addWater = (ml) => logWater(ml, ml === 250 ? 'Standard Mug' : 'Sports Tumbler');
   const pct = Math.round((hydration.intake / GOAL) * 100);
 
@@ -105,67 +108,87 @@ export default function HomeScreen({ onNavigate, onEditProfile }) {
 
       <WeekInsightCard profile={profile} preg={preg} post={post} />
 
-      {/* Appointment */}
-      <Card padding={16} style={styles.rowBetween}>
-        <View style={[styles.row8, { flex: 1 }]}>
-          <View style={[styles.squircle, { backgroundColor: Colors.secondaryContainer }]}>
-            <Icon name="event" size={22} color={Colors.onSecondaryContainer} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <View style={styles.row8}>
-              <Pill label="In 4 days" bg={Colors.secondaryFixed} color={Colors.onSecondaryFixed} style={{ paddingVertical: 2, paddingHorizontal: 8 }} />
-              <T v="labelSm" color={Colors.onSurfaceVariant}>Tue • 10:30 AM</T>
-            </View>
-            <T v="labelLg" numberOfLines={1} style={{ marginTop: 2 }}>Glucose Screening & Ultrasound</T>
-            <T v="bodySm" color={Colors.onSurfaceVariant} numberOfLines={1}>Dr. Sarah Chen, OB-GYN</T>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.roundBtn} accessibilityLabel="Appointment details">
-          <Icon name="chevron-right" size={20} color={Colors.primary} />
-        </TouchableOpacity>
-      </Card>
-
-      {/* Care routine */}
-      <View>
-        <View style={[styles.rowBetween, { marginBottom: 8 }]}>
-          <T v="headlineSm">Today's Care Routine</T>
-          <T v="labelSm" color={Colors.secondary} style={styles.bold}>{done.length} of 3 Complete</T>
-        </View>
-        {ROUTINE.map((r) => {
-          const isDone = done.includes(r.id);
-          return (
-            <View key={r.id} style={styles.routineItem}>
-              <View style={[styles.row16, { flex: 1 }]}>
-                <TouchableOpacity
-                  onPress={() => toggle(r.id)}
-                  style={[styles.check, { backgroundColor: isDone ? Colors.secondaryContainer : Colors.surfaceContainer }]}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: isDone }}
-                >
-                  {isDone && <Icon name="check" size={20} color={Colors.onSecondaryContainer} />}
-                </TouchableOpacity>
-                <View style={{ flex: 1 }}>
-                  <T v="labelLg" style={isDone && styles.struck}>{r.title}</T>
-                  <T v="bodySm" color={isDone ? Colors.secondary : Colors.onSurfaceVariant} style={isDone && { fontFamily: Fonts.medium }}>
-                    {isDone ? r.doneDesc || 'Completed today' : r.desc}
+      {/* Next visit or test from the calendar */}
+      {nextCare ? (
+        <TouchableOpacity activeOpacity={0.85} onPress={() => onNavigate?.('track')} accessibilityLabel={`Next: ${nextCare.title}`}>
+          <Card padding={16} style={styles.rowBetween}>
+            <View style={[styles.row8, { flex: 1 }]}>
+              <View style={[styles.squircle, { backgroundColor: Colors.secondaryContainer }]}>
+                <Icon name={nextCare.category === 'test' ? 'biotech' : 'event'} size={22} color={Colors.onSecondaryContainer} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={styles.row8}>
+                  <Pill label={dueLabel(daysBetween(todayKey, nextCare.dayKey))} bg={Colors.secondaryFixed} color={Colors.onSecondaryFixed} style={{ paddingVertical: 2, paddingHorizontal: 8 }} />
+                  <T v="labelSm" color={Colors.onSurfaceVariant}>
+                    {formatDayKey(nextCare.dayKey, { short: true })}{nextCare.timeMinutes != null ? ` • ${formatMinutes(nextCare.timeMinutes)}` : ''}
                   </T>
                 </View>
+                <T v="labelLg" numberOfLines={1} style={{ marginTop: 2 }}>{nextCare.title}</T>
+                <T v="bodySm" color={Colors.onSurfaceVariant} numberOfLines={1}>
+                  {nextCare.appointment?.clinicianOrClinic || (nextCare.category === 'test' ? 'Test or scan' : 'Care appointment')}
+                </T>
               </View>
-              {r.trailing === 'start' && !isDone ? (
-                <TouchableOpacity style={styles.startBtn} onPress={() => toggle(r.id)}>
-                  <T v="labelSm" color={Colors.onPrimaryFixed} style={{ fontFamily: Fonts.semibold }}>Start</T>
-                </TouchableOpacity>
-              ) : (
-                <Icon
-                  name={isDone ? 'verified' : r.trailing === 'start' ? 'verified' : r.trailing}
-                  size={20}
-                  color={isDone ? Colors.secondary : Colors.outlineVariant}
-                />
-              )}
             </View>
-          );
-        })}
-      </View>
+            <View style={styles.roundBtn}>
+              <Icon name="chevron-right" size={20} color={Colors.primary} />
+            </View>
+          </Card>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity activeOpacity={0.85} onPress={() => onNavigate?.('track')}>
+          <Card padding={16} style={styles.row8}>
+            <View style={[styles.squircle, { backgroundColor: Colors.surfaceContainer }]}>
+              <Icon name="event" size={22} color={Colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <T v="labelLg">No upcoming visits</T>
+              <T v="bodySm" color={Colors.onSurfaceVariant}>Add appointments and tests in Track.</T>
+            </View>
+          </Card>
+        </TouchableOpacity>
+      )}
+
+      {/* Care routine = today's daily checkpoints */}
+      {routine.enabled && (
+        <View>
+          <View style={[styles.rowBetween, { marginBottom: 8 }]}>
+            <T v="headlineSm">Today's Care Routine</T>
+            {routine.habits.length > 0 && (
+              <T v="labelSm" color={Colors.secondary} style={styles.bold}>{routine.done} of {routine.habits.length} Complete</T>
+            )}
+          </View>
+          {routine.habits.length === 0 && (
+            <TouchableOpacity onPress={() => onNavigate?.('track')}>
+              <T v="bodySm" color={Colors.onSurfaceVariant}>No daily habits yet. Add some in Track.</T>
+            </TouchableOpacity>
+          )}
+          {routine.habits.map((r) => {
+            const isDone = !!routine.checks[r.id];
+            return (
+              <View key={r.id} style={styles.routineItem}>
+                <View style={[styles.row16, { flex: 1 }]}>
+                  <TouchableOpacity
+                    onPress={() => routine.toggle(r.id)}
+                    style={[styles.check, { backgroundColor: isDone ? Colors.secondaryContainer : Colors.surfaceContainer }]}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isDone }}
+                    accessibilityLabel={r.title}
+                  >
+                    {isDone && <Icon name="check" size={20} color={Colors.onSecondaryContainer} />}
+                  </TouchableOpacity>
+                  <View style={{ flex: 1 }}>
+                    <T v="labelLg" style={isDone && styles.struck}>{r.title}</T>
+                    <T v="bodySm" color={isDone ? Colors.secondary : Colors.onSurfaceVariant} style={isDone && { fontFamily: Fonts.medium }}>
+                      {isDone ? 'Completed today' : r.subtitle}
+                    </T>
+                  </View>
+                </View>
+                <Icon name={isDone ? 'verified' : r.icon || 'check-circle-outline'} size={20} color={isDone ? Colors.secondary : Colors.outlineVariant} />
+              </View>
+            );
+          })}
+        </View>
+      )}
 
       {/* Hydration */}
       <Card>
