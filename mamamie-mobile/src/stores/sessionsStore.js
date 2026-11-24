@@ -36,7 +36,7 @@ const store = createPersistedStore('sessions', SESSIONS_DEFAULT, (setState) => (
 }));
 
 export const SessionsProvider = store.Provider;
-const useSessionsStore = store.useStore;
+export const useSessionsStore = store.useStore;
 
 const mins = (sec) => Math.max(1, Math.round(sec / 60));
 

@@ -10,6 +10,8 @@ import { useSessions } from '../../stores/sessionsStore';
 import { STAGES, DIETS, REMINDERS, CARE_STATUSES, MULTIPLE_TYPES } from '../../models/onboarding';
 import { pregnancyStatus, postpartumStatus, TRIMESTER_NAMES, ageFromDob } from '../../services/pregnancyDating';
 import { formatDayKey } from '../../services/dayKey';
+import CloudBackupCard from '../auth/CloudBackupCard';
+import { useAuth } from '../../stores/authStore';
 
 const avatar = require('../../../assets/images/profile.jpg');
 
@@ -44,6 +46,7 @@ export default function ProfileScreen({ onEdit, onCleared }) {
   const hydration = useHydration();
   const journal = useJournal();
   const sessions = useSessions();
+  const auth = useAuth();
   const [confirm, setConfirm] = useState(false);
   if (!profile) return null;
 
@@ -90,10 +93,12 @@ export default function ProfileScreen({ onEdit, onCleared }) {
         <Row icon="notifications-active" label="Reminders" value={joinOr(REMINDERS.filter((r) => profile.selectedReminders.includes(r.key)).map((r) => r.title), 'Off')} />
       </Section>
 
+      <CloudBackupCard />
+
       <View style={styles.privacy}>
         <Icon name="lock-outline" size={18} color={Colors.onSecondaryContainer} />
         <T v="bodySm" color={Colors.onSecondaryContainer} style={{ flex: 1, fontFamily: Fonts.medium }}>
-          Your profile is stored only on this device. Set up on {formatDayKey(profile.completedAt, { short: true })}.
+          {auth.isSignedIn ? 'Your profile is stored on this device and backed up to your account. ' : 'Your profile is stored only on this device. '}Set up on {formatDayKey(profile.completedAt, { short: true })}.
         </T>
       </View>
 
@@ -106,13 +111,15 @@ export default function ProfileScreen({ onEdit, onCleared }) {
             <View style={styles.warnIcon}><Icon name="delete-outline" size={26} color={Colors.error} /></View>
             <T v="headlineMd" style={{ textAlign: 'center' }}>Clear everything?</T>
             <T v="bodySm" color={Colors.onSurfaceVariant} style={{ textAlign: 'center', marginTop: 4, marginBottom: 16 }}>
-              This permanently removes your profile, logs and notes from this device. It can’t be undone.
+              This permanently removes your profile, logs and notes from this device and signs you out. A cloud backup, if you have one, is kept until you delete your account. It can’t be undone.
             </T>
             <PrimaryButton
               label="Yes, clear my data"
               style={{ backgroundColor: Colors.error, shadowColor: Colors.error }}
               onPress={async () => {
                 setConfirm(false);
+                // Sign out first: otherwise sync would treat the wiped data as deletions or restore it.
+                if (auth.isSignedIn) await auth.signOut();
                 hydration.reset();
                 journal.reset();
                 sessions.reset();

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 import { Colors } from '../../constants/theme';
 import { T, Icon, Logo } from '../../components/ui';
 import { PrimaryButton, SecondaryButton } from '../../components/forms';
@@ -111,7 +112,7 @@ export default function OnboardingFlow({ mode = 'first', onDone }) {
           <Logo size={28} />
           <T v="headlineSm">MamAmie</T>
         </View>
-        <WelcomeStep onBegin={() => goIndex(0)} />
+        <WelcomeStep onBegin={() => goIndex(0)} onSignIn={mode === 'edit' ? undefined : () => router.push('/auth')} />
       </View>
     );
   }

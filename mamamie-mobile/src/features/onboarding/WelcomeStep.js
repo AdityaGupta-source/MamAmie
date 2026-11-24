@@ -11,7 +11,7 @@ const POINTS = [
   { icon: 'health-and-safety', bg: Colors.tertiaryFixed, fg: Colors.tertiary, title: 'Not a substitute for your doctor', body: 'MamAmie supports — never replaces — your care team.' },
 ];
 
-export default function WelcomeStep({ onBegin }) {
+export default function WelcomeStep({ onBegin, onSignIn }) {
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
@@ -47,6 +47,11 @@ export default function WelcomeStep({ onBegin }) {
       </View>
 
       <PrimaryButton label="Begin gently" icon="arrow-forward" onPress={onBegin} />
+      {onSignIn ? (
+        <TouchableOpacity onPress={onSignIn} accessibilityRole="button">
+          <T v="labelLg" color={Colors.primary} style={{ textAlign: 'center' }}>I already have an account</T>
+        </TouchableOpacity>
+      ) : null}
       <T v="labelSm" color={Colors.onSurfaceVariant} style={{ textAlign: 'center', fontFamily: Fonts.regular }}>
         You can change any answer later from your profile.
       </T>

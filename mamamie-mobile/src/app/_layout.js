@@ -18,6 +18,8 @@ import { HydrationProvider } from '../stores/hydrationStore';
 import { JournalProvider } from '../stores/journalStore';
 import { SessionsProvider } from '../stores/sessionsStore';
 import { UiProvider } from '../stores/uiStore';
+import { AuthProvider } from '../stores/authStore';
+import { SyncProvider } from '../stores/syncStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -37,10 +39,14 @@ export default function RootLayout() {
           <JournalProvider>
           <SessionsProvider>
           <UiProvider>
+          <AuthProvider>
+          <SyncProvider>
             <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
               <StatusBar style="dark" />
               <Gate fontsLoaded={fontsLoaded} />
             </SafeAreaView>
+          </SyncProvider>
+          </AuthProvider>
           </UiProvider>
           </SessionsProvider>
           </JournalProvider>
@@ -64,6 +70,8 @@ function Gate({ fontsLoaded }) {
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.surface } }}>
+      {/* Reachable before onboarding (restore on a new phone) and from Profile. */}
+      <Stack.Screen name="auth" options={{ presentation: 'modal' }} />
       <Stack.Protected guard={!isComplete}>
         <Stack.Screen name="onboarding" />
       </Stack.Protected>

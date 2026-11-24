@@ -81,7 +81,7 @@ export function FieldLabel({ children, optional }) {
   );
 }
 
-export function TextField({ label, optional, value, onChangeText, placeholder, multiline, keyboardType, icon }) {
+export function TextField({ label, optional, value, onChangeText, placeholder, multiline, keyboardType, icon, secureTextEntry, autoCapitalize, autoComplete, textContentType }) {
   return (
     <View>
       {label ? <FieldLabel optional={optional}>{label}</FieldLabel> : null}

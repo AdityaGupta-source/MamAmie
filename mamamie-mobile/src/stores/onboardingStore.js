@@ -30,6 +30,12 @@ export function OnboardingProvider({ children }) {
     return saved;
   }, []);
 
+  // Adopts a profile pulled from the server (cloud restore or an edit made on another device).
+  const applyRemoteProfile = useCallback((remote) => {
+    setProfile(remote);
+    AsyncStorage.setItem(KEY, JSON.stringify(remote)).catch(() => {});
+  }, []);
+
   // Wipes the profile and every other MamAmie key on the device.
   const resetAll = useCallback(async () => {
     try {
@@ -39,7 +45,7 @@ export function OnboardingProvider({ children }) {
     setProfile(null);
   }, []);
 
-  const value = useMemo(() => ({ profile, loaded, isComplete: !!profile?.completedAt, complete, resetAll }), [profile, loaded, complete, resetAll]);
+  const value = useMemo(() => ({ profile, loaded, isComplete: !!profile?.completedAt, complete, resetAll, applyRemoteProfile }), [profile, loaded, complete, resetAll, applyRemoteProfile]);
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 }
