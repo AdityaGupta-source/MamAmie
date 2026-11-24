@@ -172,7 +172,7 @@ journal/hydration stores so Home and Track update. Move kick + contraction timer
   become journal entries; each day's contractions keep one summary entry. Home's tool tiles use real data.
   The iOS phone app has no kick/contraction screens (they live on the Watch), so these flows are new.
 
-### Phase 4 — Backend A: API client + accounts (new; server side already built in `../backend`)
+### Phase 4 — Backend A: API client + accounts ✅ built 2026-11-24, needs device test (server side in `../backend`)
 Server: `backend/` (Fastify + Prisma). Auth, `/me`, `/sync/pull`, `/sync/push` exist and are tested. See `backend/README.md`.
 - `npx expo install expo-secure-store`; keep access + refresh tokens there, never in AsyncStorage.
 - `EXPO_PUBLIC_API_URL` in `.env.local` (laptop LAN IP while testing over the hotspot; hosted URL later).
@@ -181,7 +181,7 @@ Server: `backend/` (Fastify + Prisma). Auth, `/me`, `/sync/pull`, `/sync/push` e
 - UI: sign-in / sign-up screens reached from **Profile → "Back up your data"**. The app stays fully usable without an account; do **not** gate first launch on it. Profile shows the signed-in email, sign out, change password, delete account (`DELETE /me`, then `resetAll`).
 - Done when: sign up, sign out, sign in and delete account work from the phone, and an expired access token recovers silently.
 
-### Phase 5 — Backend B: sync engine (new)
+### Phase 5 — Backend B: sync engine ✅ built 2026-11-24, needs device test
 - `src/services/sync.js` + `src/stores/syncStore.js` holding `{ cursor, pending, lastSyncedAt, enabled }`.
 - Push: every local upsert/delete is queued as a change (`collection`, `id`, `modifiedAt`, `deleted`, `data`) and flushed in batches of ≤500; adopt any `conflicts` returned (last write wins on `modifiedAt`).
 - Pull: `/sync/pull?since=cursor` until `hasMore` is false; apply into the stores; tombstones delete.
