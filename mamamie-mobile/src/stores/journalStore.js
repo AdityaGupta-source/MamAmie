@@ -288,6 +288,7 @@ export function summaryFor(journal, e) {
     case 'test':
       return reportStatusTitle(e.medicalRecord?.reportStatus) || 'Medical record';
     case 'symptom':
+      if (e.session) return e.session.summary;
       if (e.weight) return 'Weight check-in';
       return severityTitle(e.symptom?.severity) || 'Personal wellbeing note';
     case 'food':

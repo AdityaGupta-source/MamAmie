@@ -198,7 +198,7 @@ export function DayWeightCard({ dayKey }) {
   );
 }
 
-function WeightSheet({ visible, dayKey, current, onClose }) {
+export function WeightSheet({ visible, dayKey, current, onClose }) {
   const journal = useJournal();
   const unit = journal.state.weightUnit;
   const [text, setText] = useState('');

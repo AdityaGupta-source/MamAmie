@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Slot, usePathname } from 'expo-router';
 import Header from '../../components/Header';
@@ -6,6 +6,7 @@ import BottomNav from '../../components/BottomNav';
 import { useUi } from '../../stores/uiStore';
 import { goTab, KEY_FOR_PATH } from '../../services/navigation';
 import { useScheduleSync } from '../../stores/useScheduleSync';
+import QuickActionsSheet from '../../features/log/QuickActionsSheet';
 
 const SECTION = {
   home: 'Home',
@@ -16,7 +17,7 @@ const SECTION = {
 };
 
 // Sub-screens with a back-arrow header instead of the main header.
-const BACK_TITLES = { log: 'Quick Log', profile: 'Your Profile' };
+const BACK_TITLES = { log: 'Hydration', profile: 'Your Profile' };
 
 // Shared chrome for every in-app screen: Stitch header, the current route, and the bottom nav.
 export default function MainLayout() {
@@ -24,6 +25,7 @@ export default function MainLayout() {
   const current = KEY_FOR_PATH[pathname] || 'home';
   const { amber } = useUi();
   useScheduleSync();
+  const [quickOpen, setQuickOpen] = useState(false);
 
   // Remember the last main tab so back-arrow screens return to it.
   const lastTab = useRef('home');
@@ -41,7 +43,8 @@ export default function MainLayout() {
       <View style={styles.content}>
         <Slot />
       </View>
-      <BottomNav current={current} onChange={goTab} />
+      <BottomNav current={current} onChange={(key) => (key === 'log' ? setQuickOpen(true) : goTab(key))} />
+      <QuickActionsSheet visible={quickOpen} onClose={() => setQuickOpen(false)} onOpenHydration={() => goTab('log')} />
       {amber && <View pointerEvents="none" style={styles.amber} />}
     </View>
   );
