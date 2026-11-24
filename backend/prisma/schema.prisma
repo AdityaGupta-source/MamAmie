@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQLite for local dev. To move to Postgres, change the provider, set DATABASE_URL,
+// delete prisma/migrations and run `npx prisma migrate dev --name init` once.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String?
+  // Monotonic per-user counter; every synced write takes the next value (used as the pull cursor).
+  syncVersion  Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  refreshTokens RefreshToken[]
+  records       SyncRecord[]
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// One row per app record (journal entry, dose log, kick session, ...) or singleton document.
+// `data` is the record exactly as the app stores it. Deletes are tombstones so other devices learn of them.
+model SyncRecord {
+  userId           String
+  collection       String
+  recordId         String
+  data             String
+  clientModifiedAt BigInt
+  deleted          Boolean  @default(false)
+  serverVersion    Int
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, collection, recordId])
+  @@index([userId, serverVersion])
+}

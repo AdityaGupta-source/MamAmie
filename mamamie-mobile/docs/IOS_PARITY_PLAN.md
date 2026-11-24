@@ -64,12 +64,14 @@ Read this file before starting any feature. Each phase names the iOS files to po
 - Keep expensive work out of render; derive with `useMemo` or in the store.
 
 **Health data & safety**
-- Everything stays on the device unless a feature is explicitly backend-backed.
+- Everything stays on the device unless the user signs in and turns sync on (Phases 4–5) or uses a
+  backend-backed feature. The app must work fully offline and without an account. Our own server
+  is `../backend` (Android side); the iOS FastAPI deployment is a reference only, not a dependency.
 - Never `console.log` medical notes, symptoms, dates, prescriptions or images.
 - Never invent pregnancy dates or gestational age. If the user skipped dating, show
   "Add your dates" instead of a week number.
 - Every AI answer shows a "not a diagnosis" disclaimer. Run the on-device safety screen
-  (Phase 5) **before** any AI call; if it fires, show the emergency message and do not wait
+  (Phase 7) **before** any AI call; if it fires, show the emergency message and do not wait
   for the model.
 - No prescribing, no dose calculation, no clinical thresholds beyond what iOS already shows.
 
@@ -78,7 +80,7 @@ Read this file before starting any feature. Each phase names the iOS files to po
   **Do not copy it.** Read the key from `EXPO_PUBLIC_GEMINI_API_KEY` in
   `mamamie-mobile/.env.local` (gitignored by the `.env*.local` rule; a plain `.env` is NOT ignored). Note: `EXPO_PUBLIC_*` values ship inside the app
   bundle — acceptable for a hackathon demo only. Long term, call Gemini through the backend
-  (`POST /nutrition/analyze-image`, `/ai-assistant/query`), which keeps keys server-side.
+  our own `../backend` (`POST /ai/food-analyze` in Phase 6, `POST /ai/chat` in Phase 7), which keeps keys server-side.
 
 **Replace hard-coded demo values** in the current UI ("Elena", "Week 24", "Dr. Chen in 4 days",
 "Sweet Cantaloupe", vitals) with real store data as each phase lands. Keep the Stitch layout.
@@ -156,10 +158,10 @@ Original plan:
   `stores/useScheduleSync.js` (runs in the `(main)` layout), Track UI in `features/track/`.
   Deliberate iOS differences: no plan without real dates (iOS assumed week 12), past milestones are
   not auto-marked completed, and stable ids are `schedule:<milestone>` strings (the iOS hash-based
-  UUID changes every launch). Photo entries wait for the Vault (Phase 6).
+  UUID changes every launch). Photo entries wait for the Vault (Phase 8).
 
 ### Phase 3 — Log (+) quick actions — built 2026-11-24, needs device test
-Turn the centre **+** into an action sheet: Water (current Quick Log screen), Food (Phase 4),
+Turn the centre **+** into an action sheet: Water (current Quick Log screen), Food (Phase 6),
 Kick session, Contraction, Symptom, Medication dose, Journal note, Weight. Each writes to the
 journal/hydration stores so Home and Track update. Move kick + contraction timers out of
 `features/track/TrackScreen.js` into a shared `sessionsStore`.
@@ -170,12 +172,32 @@ journal/hydration stores so Home and Track update. Move kick + contraction timer
   become journal entries; each day's contractions keep one summary entry. Home's tool tiles use real data.
   The iOS phone app has no kick/contraction screens (they live on the Watch), so these flows are new.
 
-### Phase 4 — Food scanner (iOS: `Services/MaternalFoodAIService.swift`, `Models/FoodNutritionModels.swift`, `Services/GeminiChatService.swift`, `Food*View.swift`)
+### Phase 4 — Backend A: API client + accounts (new; server side already built in `../backend`)
+Server: `backend/` (Fastify + Prisma). Auth, `/me`, `/sync/pull`, `/sync/push` exist and are tested. See `backend/README.md`.
+- `npx expo install expo-secure-store`; keep access + refresh tokens there, never in AsyncStorage.
+- `EXPO_PUBLIC_API_URL` in `.env.local` (laptop LAN IP while testing over the hotspot; hosted URL later).
+- `src/services/api.js`: fetch wrapper that adds the bearer token, refreshes once on 401, surfaces `{ error, message }`, 12 s timeout, and never throws on being offline.
+- `src/stores/authStore.js`: `user`, `signIn`, `signUp`, `signOut`, `deleteAccount`.
+- UI: sign-in / sign-up screens reached from **Profile → "Back up your data"**. The app stays fully usable without an account; do **not** gate first launch on it. Profile shows the signed-in email, sign out, change password, delete account (`DELETE /me`, then `resetAll`).
+- Done when: sign up, sign out, sign in and delete account work from the phone, and an expired access token recovers silently.
+
+### Phase 5 — Backend B: sync engine (new)
+- `src/services/sync.js` + `src/stores/syncStore.js` holding `{ cursor, pending, lastSyncedAt, enabled }`.
+- Push: every local upsert/delete is queued as a change (`collection`, `id`, `modifiedAt`, `deleted`, `data`) and flushed in batches of ≤500; adopt any `conflicts` returned (last write wins on `modifiedAt`).
+- Pull: `/sync/pull?since=cursor` until `hasMore` is false; apply into the stores; tombstones delete.
+- Triggers: after sign-in, on app foreground, and a short debounce after local edits. Only runs when signed in **and** the Profile "Sync" toggle is on.
+- Mapping (from Phases 1–3): `entries` and `medicationSchedules` and `doseLogs` from `journalStore`; `kickSessions` and `contractions` from `sessionsStore`; `documents` for `profile`, `habits`, `checks`, `hydration`, `settings`.
+- Prerequisite changes: add `modifiedAt` to dose logs, kick sessions and contractions; sync `checks` as one document; keep deterministic `schedule:<milestone>` ids so clinical-plan entries don't duplicate across devices.
+- Reliability: retry with backoff, offline indicator, "last synced" line in Profile, first-sign-in merge by `modifiedAt`.
+- Done when: wiping the app and signing in again restores journal, sessions and profile, and a delete on one device disappears on the other.
+
+### Phase 6 — Food scanner (iOS: `Services/MaternalFoodAIService.swift`, `Models/FoodNutritionModels.swift`, `Services/GeminiChatService.swift`, `Food*View.swift`)
 - Photo via `expo-image-picker` (camera or gallery), or text description.
 - `src/services/gemini.js`: `generateContent` against
   `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`, with the
   same **model fallback cascade** as iOS `candidateModels` (move on after 429/503), a
   `systemInstruction`, JSON-only responses, 12 s timeout, and an offline fallback.
+- **Backend:** add `POST /api/v1/ai/food-analyze` to `backend/` (auth + rate limit, key in server env). The app prefers it when signed in and online, and falls back to the direct-key path (`EXPO_PUBLIC_GEMINI_API_KEY`, demo only) otherwise. Never log images or meal text on the server.
 - Nutrients per item: energyKcal, proteinG, carbohydrateG, fatG, fibreG, ironMg, folateMcg,
   calciumMg, vitaminDMcg, vitaminCMg, sodiumMg, dhaMg, cholineMg.
 - Pregnancy daily targets (`PregnancyRDA`): calories 2200, protein 75 g, iron 27 mg,
@@ -185,32 +207,33 @@ journal/hydration stores so Home and Track update. Move kick + contraction timer
   Keep the rule-based fallback when AI is unavailable.
 - Respect `dietaryPreference` in suggestions. Every result labelled "estimate — review it".
 - Save meals to `foodStore` and as `food` journal entries; "add recommendations to checkpoints".
+  Add `meals` as a sync collection (backend `COLLECTIONS` + app mapping).
 - Bundle the three sample meals (spinach dal, salmon quinoa, yogurt berries; images in
   `MamAmie IOS/MamAmie/Assets.xcassets/sample_*`) for demoing without a camera.
 
-### Phase 5 — Ask (iOS: `AssistantView.swift`, `Services/AssistantSafetyScreening.swift`, `Services/AssistantAPIClient.swift`, `Views/AI/MaternalAIView.swift`)
-- **Safety screen first**: port `AssistantSafetyScreening.emergencyMessage` exactly (reported vs
+### Phase 7 — Ask (iOS: `AssistantView.swift`, `Services/AssistantSafetyScreening.swift`, `Services/AssistantAPIClient.swift`, `Views/AI/MaternalAIView.swift`)
+- **Safety screen first, on-device**: port `AssistantSafetyScreening.emergencyMessage` exactly (reported vs
   hypothetical phrasing, negation regex, term lists for breathing, chest pain, bleeding, seizure,
   severe abdominal pain, headache + vision, reduced fetal movement, self-harm). On match show the
-  emergency card (India 112) with a call button and the SOS sheet.
+  emergency card (India 112) with a call button and the SOS sheet, and do not call any model.
 - Chat: Gemini with the iOS system prompt (warm, grounded, red-flag escalation) plus a
   **context snapshot** built from profile (week, trimester, EDD, diet, conditions) and today's
   food totals. Send the last 10 turns. Markdown-ish rendering for bold and lists.
+- **Backend:** add `POST /api/v1/ai/chat` to `backend/` (auth, rate limit, server-side key, same system prompt, disclaimer appended). The app uses it when signed in; direct-key fallback for demo. Do not store chat text on the server unless the user opts in; if stored, add `chats` as a sync collection.
 - Guidance section: suggested questions by trimester, "AI clinical insight" cards, disclaimer
   text from `MaternalAIView.swift`.
-- Optional (when online + signed in): backend grounded assistant `POST /ai-assistant/query`,
-  `/ai-assistant/triage`, `/ai-assistant/reports/explain` with citations. Needs auth
-  (`/auth/register`, `/auth/login`, `/auth/refresh`; tokens in `expo-secure-store`).
+- Optional later: the iOS backend's grounded RAG endpoints (`/ai-assistant/query`, `/triage`, `/reports/explain`) are a reference for citations; reimplement in `backend/` rather than depending on the iOS deployment.
 
-### Phase 6 — Vault
+### Phase 8 — Vault
 - List of tests/reports, photos and attachments from the journal plus standalone documents.
 - Add via `expo-image-picker` / `expo-document-picker`; copy into
   `FileSystem.documentDirectory + 'vault/'` and reference by attachment id (never by original URI).
+- **Backend:** attachment upload/download (`POST /files`, `GET /files/:id`, per-user storage, size and type limits, deleted with the account). Sync only attachment metadata through `/sync`; upload the bytes in the background when signed in and sync is on. Local file stays the source of truth.
 - Medication list + adherence history.
-- "Explain this report" → Ask (Phase 5 / backend `reports/explain`).
+- "Explain this report" → Ask (Phase 7).
 - Replace Home's "Scan Lab Report" tile target with this screen.
 
-### Phase 7 — Health metrics (iOS: `Views/Health/*`, `Models/Health/*`, `Services/Health/MockHealthDataProvider.swift`)
+### Phase 9 — Health metrics (iOS: `Views/Health/*`, `Models/Health/*`, `Services/Health/MockHealthDataProvider.swift`)
 - Metrics: heart rate (+ resting), blood oxygen, blood pressure (sys/dia), sleep, steps, HRV (SDNN),
   wrist temperature. Day / week / month charts with real date axes (react-native-svg), stat cards,
   readings list, broad non-diagnostic pregnancy reference band, medical-safety banner
@@ -218,17 +241,20 @@ journal/hydration stores so Home and Track update. Move kick + contraction timer
 - Android has no HealthKit: ship **Demo mode** (port `MockHealthDataProvider`, every point tagged
   `Demo`) plus manual BP/weight entry. Health Connect only after moving to a dev build.
 - Feeds Track → "Vitals" mode (replace hard-coded 118/76, 78 bpm, sleep, weight).
+- **Backend:** sync only manual readings (add `readings` collection). Demo points are never uploaded.
 
-### Phase 8 — Circle (postpartum, loss, newborn)
+### Phase 10 — Circle (postpartum, loss, newborn)
 - UI is already built (`features/circle/CircleScreen.js`). Connect it to profile: default to Postpartum Healing when
   stage is postpartum; day count from childbirthDate.
 - Quiet Loss Support must hide pregnancy milestones, kick counters and baby-size content app-wide
-  ("Trigger Shield") when enabled — add a profile flag and respect it in Home/Track.
-- Newborn: profile + India UIP vaccination schedule (port `backend/app/services/vaccination_scheduler.py`).
+  ("Trigger Shield") when enabled — add a profile flag (synced in the `profile` document) and respect it in Home/Track.
+  Server-sent content (notifications, AI replies) must respect it too.
+- Newborn: profile + India UIP vaccination schedule (port `backend/app/services/vaccination_scheduler.py` from the iOS repo, on-device; mirror it in `backend/` only if the server needs it).
 
-### Phase 9 — Reminders & polish
+### Phase 11 — Reminders, hardening & release
 - `expo-notifications` local reminders only for types chosen in onboarding; privacy-safe text
   (no symptoms or drug names on the lock screen).
+- **Backend:** deploy (Postgres, long `JWT_SECRET`, `CORS_ORIGINS`, HTTPS only) and point `EXPO_PUBLIC_API_URL` at it; email verification and password reset; backups; health-data privacy review (no record contents in logs, account deletion verified end to end). Remote push notifications only if there is a concrete need.
 - Vault/Ask "coming soon" placeholders removed; empty states everywhere; loading skeletons.
 - Run `npx expo lint`; test each phase on the phone in Expo Go before starting the next.
 
@@ -239,4 +265,5 @@ journal/hydration stores so Home and Track update. Move kick + contraction timer
 - Data survives an app restart; "Clear data" wipes it.
 - No hard-coded personal values remain for that feature.
 - Matches Stitch styling (tokens from `theme.js`, `Card`/`Pill`/`T`/`Icon` from `ui.js`).
+- Backend-touching phases: `backend/` typecheck and tests pass (`npm run typecheck && npm test`), and the app still works with the server unreachable.
 - Commit on a feature branch (`feature/<phase-name>`), as in the iOS git workflow.
