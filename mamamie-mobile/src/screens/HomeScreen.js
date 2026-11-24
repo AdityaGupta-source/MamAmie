@@ -1,20 +1,35 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Colors, Fonts, Radius, Shadow } from '../constants/theme';
 import { usePersistentState } from '../constants/storage';
 import { Icon, T, Card, Pill, ProgressRing } from '../components/ui';
+import { useOnboarding } from '../stores/onboardingStore';
+import { pregnancyStatus, postpartumStatus, TRIMESTER_NAMES } from '../services/pregnancyDating';
+import { toDayKey, addDays, fromDayKey, formatDayKey } from '../services/dayKey';
+import JourneyCard from '../features/home/JourneyCard';
+import WeekInsightCard from '../features/home/WeekInsightCard';
 
 const article = require('../../assets/images/article.jpg');
 
-const DAYS = [
-  { d: 'Mon', n: 14, dot: true },
-  { d: 'Tue', n: 15, dot: true },
-  { d: 'Wed', n: 16, dot: true },
-  { d: 'Thu', n: 17, today: true },
-  { d: 'Fri', n: 18 },
-  { d: 'Sat', n: 19 },
-  { d: 'Sun', n: 20 },
-];
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Current Monday–Sunday week; past days get a soft dot.
+function weekStrip(todayKey) {
+  const today = fromDayKey(todayKey);
+  const monday = addDays(todayKey, -((today.getDay() + 6) % 7));
+  return Array.from({ length: 7 }, (_, i) => {
+    const key = addDays(monday, i);
+    const d = fromDayKey(key);
+    return { key, d: DOW[d.getDay()], n: d.getDate(), today: key === todayKey, dot: key < todayKey };
+  });
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return { eyebrow: 'MORNING SANCTUARY', hello: 'Good morning' };
+  if (h < 17) return { eyebrow: 'AFTERNOON PAUSE', hello: 'Good afternoon' };
+  return { eyebrow: 'EVENING REST', hello: 'Good evening' };
+}
 
 const ROUTINE = [
   { id: 1, title: 'Prenatal Vitamin & DHA', doneDesc: 'Logged at 8:15 AM', desc: 'Take with breakfast', trailing: 'verified' },
@@ -31,9 +46,22 @@ const TILES = [
 
 const GOAL = 2500;
 
-export default function HomeScreen({ onNavigate }) {
-  const [roadmapOpen, setRoadmapOpen] = useState(false);
-  const [guideOpen, setGuideOpen] = useState(false);
+export default function HomeScreen({ onNavigate, onEditProfile }) {
+  const { profile } = useOnboarding();
+  const todayKey = toDayKey();
+  const preg = pregnancyStatus(profile, todayKey);
+  const post = postpartumStatus(profile, todayKey);
+  const days = weekStrip(todayKey);
+  const greet = greeting();
+  const name = profile?.displayName || 'Mama';
+
+  let subtitle = 'Planning • gentle preparation';
+  if (profile?.stage === 'pregnant') {
+    subtitle = preg ? `Week ${preg.week} • Day ${preg.day} • ${TRIMESTER_NAMES[preg.trimester]}` : 'Pregnancy • add your due date';
+  } else if (profile?.stage === 'postpartum') {
+    subtitle = post ? `Week ${post.week} postpartum • Day ${post.days}` : 'Postpartum • gentle recovery';
+  }
+
   const [done, setDone] = usePersistentState('routine', [1]);
   const [hydration, setHydration] = usePersistentState('hydration', { intake: 1750, logs: [] });
   const [bookmarked, setBookmarked] = usePersistentState('affirmation_saved', false);
@@ -53,65 +81,25 @@ export default function HomeScreen({ onNavigate }) {
       {/* Greeting */}
       <View style={styles.greetRow}>
         <View style={{ flex: 1 }}>
-          <T v="labelSm" color={Colors.primary} style={styles.eyebrow}>MORNING SANCTUARY</T>
-          <T v="headlineLg" style={{ marginTop: 2 }}>Good morning, Elena</T>
-          <T v="bodySm" color={Colors.onSurfaceVariant}>Week 24 • Day 3 • Second Trimester</T>
+          <T v="labelSm" color={Colors.primary} style={styles.eyebrow}>{greet.eyebrow}</T>
+          <T v="headlineLg" style={{ marginTop: 2 }}>{greet.hello}, {name}</T>
+          <T v="bodySm" color={Colors.onSurfaceVariant}>{subtitle}</T>
         </View>
         <TouchableOpacity style={styles.roundBtn} accessibilityLabel="Toggle audio guide">
           <Icon name="spa" size={20} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
-      {/* Progress ring + baby size */}
-      <Card>
-        <TouchableOpacity style={styles.row16} activeOpacity={0.85} onPress={() => setRoadmapOpen((o) => !o)}>
-          <ProgressRing size={112} stroke={10} progress={0.6} color={Colors.primary} track={Colors.surfaceContainerLow}>
-            <T v="headlineMd" style={{ fontFamily: Fonts.bold }}>60%</T>
-            <T v="labelSm" color={Colors.onSurfaceVariant}>complete</T>
-          </ProgressRing>
-          <View style={{ flex: 1 }}>
-            <Pill label="112 days to go" icon="cloud-download" bg={Colors.secondaryContainer} color={Colors.onSecondaryContainer} style={{ marginBottom: 4 }} />
-            <T v="headlineSm" numberOfLines={1}>Sweet Cantaloupe</T>
-            <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 2 }}>Approx. 30 cm long • 600g</T>
-            <View style={[styles.rowGap6, { marginTop: 8 }]}>
-              <T v="labelSm" color={Colors.primary}>View trimester roadmap</T>
-              <Icon name={roadmapOpen ? 'expand-less' : 'expand-more'} size={16} color={Colors.primary} />
-            </View>
-          </View>
-        </TouchableOpacity>
-        {roadmapOpen && (
-          <View style={{ marginTop: 16 }}>
-            <View style={styles.triRow}>
-              <View style={[styles.tri, { backgroundColor: Colors.surfaceContainerLow }]}>
-                <T v="labelSm" color={Colors.secondary} style={styles.bold}>Tri 1</T>
-                <T v="labelSm" color={Colors.onSurfaceVariant}>W1–12</T>
-                <Icon name="check-circle" size={16} color={Colors.secondary} style={{ marginTop: 4 }} />
-              </View>
-              <View style={[styles.tri, { backgroundColor: 'rgba(255,218,220,0.4)' }]}>
-                <T v="labelSm" color={Colors.primary} style={styles.bold}>Tri 2</T>
-                <T v="labelSm" color={Colors.primary}>W13–27</T>
-                <T v="labelSm" color={Colors.primary} style={{ marginTop: 4, fontFamily: Fonts.semibold }}>Current</T>
-              </View>
-              <View style={[styles.tri, { backgroundColor: Colors.surfaceContainerLow, opacity: 0.6 }]}>
-                <T v="labelSm" color={Colors.onSurfaceVariant} style={styles.bold}>Tri 3</T>
-                <T v="labelSm" color={Colors.onSurfaceVariant}>W28–40</T>
-                <Icon name="schedule" size={16} color={Colors.onSurfaceVariant} style={{ marginTop: 4 }} />
-              </View>
-            </View>
-            <T v="bodySm" color={Colors.onSurfaceVariant} style={{ textAlign: 'center', marginTop: 8 }}>
-              Rapid auditory reflex and surfactant synthesis stage
-            </T>
-          </View>
-        )}
-      </Card>
+      <JourneyCard profile={profile} preg={preg} post={post} onEditDates={onEditProfile} />
 
       {/* Date strip */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.dateStrip}>
-        {DAYS.map((day) => (
+        {days.map((day) => (
           <TouchableOpacity
-            key={day.n}
+            key={day.key}
             activeOpacity={0.8}
             style={[styles.dateChip, day.today && styles.dateChipToday]}
+            accessibilityLabel={formatDayKey(day.key)}
           >
             <T v="labelSm" color={day.today ? Colors.onPrimary : Colors.onSurfaceVariant} style={day.today && styles.bold}>{day.d}</T>
             <T v="headlineSm" color={day.today ? Colors.onPrimary : Colors.onSurfaceVariant} style={[{ marginTop: 4 }, day.today && styles.bold]}>{day.n}</T>
@@ -120,43 +108,7 @@ export default function HomeScreen({ onNavigate }) {
         ))}
       </ScrollView>
 
-      {/* Milestone */}
-      <Card style={{ backgroundColor: '#fff4f6' }}>
-        <View style={styles.rowTop16}>
-          <View style={[styles.circleIcon, { backgroundColor: Colors.tertiaryFixed }]}>
-            <Icon name="hearing" size={26} color={Colors.tertiary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <View style={styles.rowGap6}>
-              <T v="labelSm" color={Colors.primary} style={[styles.bold, styles.eyebrow]}>MILESTONE ALERT</T>
-              <View style={[styles.dot6, { backgroundColor: Colors.primary }]} />
-            </View>
-            <T v="headlineSm" style={{ marginTop: 2 }}>Hearing Your World</T>
-            <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 4, lineHeight: 21 }}>
-              Baby can now recognize your voice and hear maternal heartbeats! Gentle talking, singing, and rhythmic melodies comfort their developing sensory cortex.
-            </T>
-            <TouchableOpacity style={styles.guideBtn} onPress={() => setGuideOpen((o) => !o)} activeOpacity={0.85}>
-              <View style={styles.rowGap6}>
-                <Icon name="menu-book" size={18} color={Colors.primary} />
-                <T v="labelMd">Clinical guide for Week 24</T>
-              </View>
-              <Icon name={guideOpen ? 'expand-less' : 'expand-more'} size={18} color={Colors.onSurfaceVariant} />
-            </TouchableOpacity>
-            {guideOpen && (
-              <View style={styles.guideBody}>
-                <T v="bodySm" style={{ fontFamily: Fonts.semibold }}>Key anatomical milestones this week:</T>
-                {[
-                  'Inner ear cochlea is completely structurally developed.',
-                  'Taste buds continue to develop along the tongue surface.',
-                  'Capillaries are forming in the lungs to prepare for oxygenation.',
-                ].map((t) => (
-                  <T key={t} v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 4 }}>• {t}</T>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
-      </Card>
+      <WeekInsightCard profile={profile} preg={preg} post={post} />
 
       {/* Appointment */}
       <Card padding={16} style={styles.rowBetween}>

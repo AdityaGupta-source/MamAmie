@@ -18,6 +18,9 @@ import HomeScreen from './src/screens/HomeScreen';
 import VitalsScreen from './src/screens/VitalsScreen';
 import HydrationScreen from './src/screens/HydrationScreen';
 import CareScreen from './src/screens/CareScreen';
+import { OnboardingProvider, useOnboarding } from './src/stores/onboardingStore';
+import OnboardingFlow from './src/features/onboarding/OnboardingFlow';
+import ProfileScreen from './src/features/profile/ProfileScreen';
 
 const SECTION = {
   home: 'Home',
@@ -40,10 +43,6 @@ function ComingSoon({ icon, title, body }) {
 }
 
 export default function App() {
-  const [tab, setTab] = useState('home');
-  const [prevTab, setPrevTab] = useState('home');
-  const [amber, setAmber] = useState(false);
-
   const [fontsLoaded] = useFonts({
     PlusJakartaSans_400Regular,
     PlusJakartaSans_500Medium,
@@ -52,48 +51,72 @@ export default function App() {
     PlusJakartaSans_700Bold,
   });
 
+  if (!fontsLoaded) return <Loading />;
+
+  return (
+    <SafeAreaProvider>
+      <OnboardingProvider>
+        <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+          <StatusBar style="dark" />
+          <Shell />
+        </SafeAreaView>
+      </OnboardingProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function Loading() {
+  return (
+    <View style={[styles.root, { alignItems: 'center', justifyContent: 'center' }]}>
+      <ActivityIndicator color={Colors.primary} />
+    </View>
+  );
+}
+
+function Shell() {
+  const { loaded, isComplete } = useOnboarding();
+  const [tab, setTab] = useState('home');
+  const [prevTab, setPrevTab] = useState('home');
+  const [editing, setEditing] = useState(false);
+  const [amber, setAmber] = useState(false);
+
   const go = (next) => {
     if (next !== tab) setPrevTab(tab);
     setTab(next);
   };
+  const back = () => go(prevTab === tab ? 'home' : prevTab);
+  const openProfile = () => go('profile');
 
-  if (!fontsLoaded) {
-    return (
-      <View style={[styles.root, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color={Colors.primary} />
-      </View>
-    );
-  }
+  if (!loaded) return <Loading />;
+  if (!isComplete) return <OnboardingFlow mode="first" onDone={() => setTab('home')} />;
+  if (editing) return <OnboardingFlow mode="edit" onDone={() => setEditing(false)} />;
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-        <StatusBar style="dark" />
+    <>
+      {tab === 'log' || tab === 'profile' ? (
+        <Header variant="back" title={tab === 'log' ? 'Quick Log' : 'Your Profile'} onBack={back} onProfile={openProfile} />
+      ) : (
+        <Header section={SECTION[tab]} onProfile={openProfile} />
+      )}
 
-        {tab === 'log' ? (
-          <Header variant="back" title="Quick Log" onBack={() => go(prevTab === 'log' ? 'home' : prevTab)} />
-        ) : (
-          <Header section={SECTION[tab]} />
+      <View style={styles.content}>
+        {tab === 'home' && <HomeScreen onNavigate={go} onEditProfile={() => setEditing(true)} />}
+        {tab === 'track' && <VitalsScreen onNavigate={go} />}
+        {tab === 'log' && <HydrationScreen />}
+        {tab === 'circle' && <CareScreen amber={amber} setAmber={setAmber} />}
+        {tab === 'profile' && <ProfileScreen onEdit={() => setEditing(true)} onCleared={() => setTab('home')} />}
+        {tab === 'vault' && (
+          <ComingSoon icon="folder-special" title="Medical Vault" body="Lab reports, scans and clinic notes will be stored here securely." />
         )}
+        {tab === 'ask' && (
+          <ComingSoon icon="auto-awesome" title="Ask MamAmie" body="A gentle, clinically-reviewed AI companion for your pregnancy questions is on the way." />
+        )}
+      </View>
 
-        <View style={styles.content}>
-          {tab === 'home' && <HomeScreen onNavigate={go} />}
-          {tab === 'track' && <VitalsScreen onNavigate={go} />}
-          {tab === 'log' && <HydrationScreen />}
-          {tab === 'circle' && <CareScreen amber={amber} setAmber={setAmber} />}
-          {tab === 'vault' && (
-            <ComingSoon icon="folder-special" title="Medical Vault" body="Lab reports, scans and clinic notes will be stored here securely." />
-          )}
-          {tab === 'ask' && (
-            <ComingSoon icon="auto-awesome" title="Ask MamAmie" body="A gentle, clinically-reviewed AI companion for your pregnancy questions is on the way." />
-          )}
-        </View>
+      <BottomNav current={tab} onChange={go} />
 
-        <BottomNav current={tab} onChange={go} />
-
-        {amber && <View pointerEvents="none" style={styles.amber} />}
-      </SafeAreaView>
-    </SafeAreaProvider>
+      {amber && <View pointerEvents="none" style={styles.amber} />}
+    </>
   );
 }
 
