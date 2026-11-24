@@ -4,7 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Builds a Context-backed store whose state is saved to AsyncStorage under `@mamamie_<key>`.
 //   const { Provider, useStore } = createPersistedStore('hydration', initial, (state, set) => ({ ...actions }));
 // Screens call useStore() and get { state, loaded, ...actions, reset }; they never touch storage directly.
-export function createPersistedStore(key, initial, buildActions = () => ({})) {
+// Optional `derive(state)` returns lookup indexes; they are rebuilt only when state changes and
+// spread into the store value next to `state`.
+export function createPersistedStore(key, initial, buildActions = () => ({}), derive = null) {
   const storageKey = `@mamamie_${key}`;
   const Ctx = createContext(null);
 
@@ -35,7 +37,8 @@ export function createPersistedStore(key, initial, buildActions = () => ({})) {
 
     const reset = useCallback(() => setState(initial), []);
     const actions = useMemo(() => buildActions(setState), []);
-    const value = useMemo(() => ({ state, loaded, setState, reset, ...actions }), [state, loaded, reset, actions]);
+    const derived = useMemo(() => (derive ? derive(state) : null), [state]);
+    const value = useMemo(() => ({ state, loaded, setState, reset, ...derived, ...actions }), [state, loaded, reset, actions, derived]);
 
     return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
   }

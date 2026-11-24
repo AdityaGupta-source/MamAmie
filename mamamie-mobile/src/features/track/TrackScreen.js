@@ -1,9 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Svg, { Rect, Line, Polyline, Circle } from 'react-native-svg';
 import { Colors, Fonts, Radius, Shadow } from '../../constants/theme';
 import { usePersistentState } from '../../stores/usePersistentState';
 import { Icon, T, Pill } from '../../components/ui';
+import { useOnboarding } from '../../stores/onboardingStore';
+import { useJournal, timelineFor, upcomingFrom, weightHistory } from '../../stores/journalStore';
+import { pregnancyStatus } from '../../services/pregnancyDating';
+import { detectMissed, reviseAllMissed } from '../../services/clinicalSchedule';
+import { toDayKey, formatDayKey } from '../../services/dayKey';
+import CalendarCard from './CalendarCard';
+import { DayTimeline, UpcomingCard, MissedBanner } from './DayTimeline';
+import { MoodCard, CheckpointsCard, DayWeightCard } from './DayTrackers';
+import EntryEditorSheet from './EntryEditorSheet';
+import EntryDetailSheet from './EntryDetailSheet';
 
 const doctor = require('../../../assets/images/doctor.jpg');
 
@@ -13,16 +23,6 @@ const MODES = [
   { key: 'kicks', label: 'Fetal Movement', live: true },
   { key: 'nutrition', label: 'Nutrition & Water' },
   { key: 'contractions', label: 'Contractions' },
-];
-
-const WEEK = [
-  { d: 'M', n: 12, dots: [Colors.secondary] },
-  { d: 'T', n: 13, dots: [Colors.secondary, Colors.primaryContainer] },
-  { d: 'W', n: 14, dots: [Colors.surfaceTint] },
-  { d: 'T', n: 15, dots: [Colors.secondary] },
-  { d: 'F', n: 16, dots: [Colors.secondaryFixed, Colors.primaryFixed], today: true },
-  { d: 'S', n: 17, dots: [Colors.surfaceVariant] },
-  { d: 'S', n: 18, dots: [Colors.surfaceVariant] },
 ];
 
 // Systolic readings for the 7-day sparkline.
@@ -37,6 +37,22 @@ export default function TrackScreen({ onNavigate }) {
   const [contractions, setContractions] = usePersistentState('contractions', []);
   const [contractionStart, setContractionStart] = useState(null);
   const [now, setNow] = useState(Date.now());
+
+  const { profile } = useOnboarding();
+  const journal = useJournal();
+  const todayKey = toDayKey();
+  const [selectedKey, setSelectedKey] = useState(todayKey);
+  const [editor, setEditor] = useState(null); // { entry, preset } while the editor is open
+  const [detailId, setDetailId] = useState(null);
+
+  const preg = pregnancyStatus(profile, selectedKey);
+  const timeline = useMemo(() => timelineFor(journal, selectedKey), [journal, selectedKey]);
+  const upcoming = useMemo(() => upcomingFrom(journal, todayKey), [journal, todayKey]);
+  const missed = useMemo(() => detectMissed(journal.state.entries, todayKey), [journal.state.entries, todayKey]);
+  const openEntry = (e) => {
+    setSelectedKey(e.dayKey);
+    setDetailId(e.id);
+  };
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -66,7 +82,7 @@ export default function TrackScreen({ onNavigate }) {
     }
   };
 
-  const show = (section) => mode === 'overview' || SECTIONS[mode]?.includes(section);
+  const show = (section) => SECTIONS[mode]?.includes(section);
 
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -85,38 +101,23 @@ export default function TrackScreen({ onNavigate }) {
         </View>
       </ScrollView>
 
-      {/* Calendar */}
-      <View style={styles.card16}>
-        <View style={[styles.rowBetween, { marginBottom: 8, paddingHorizontal: 4 }]}>
-          <View style={styles.row6}>
-            <T v="headlineSm">May 2025</T>
-            <Pill label="Week 24" bg={Colors.primaryFixed} color={Colors.primary} style={{ paddingVertical: 2, paddingHorizontal: 8 }} />
-          </View>
-          <View style={styles.row6}>
-            <Icon name="chevron-left" size={20} color={Colors.onSurfaceVariant} />
-            <Icon name="chevron-right" size={20} color={Colors.onSurfaceVariant} />
-          </View>
-        </View>
-        <View style={styles.weekRow}>
-          {WEEK.map((w) => (
-            <View key={w.n} style={[styles.weekDay, w.today && styles.weekDayToday]}>
-              <T v="labelSm" color={w.today ? 'rgba(255,255,255,0.8)' : Colors.onSurfaceVariant} style={{ marginBottom: 4 }}>{w.d}</T>
-              <T v="labelMd" color={w.today ? Colors.onPrimary : Colors.onSurface} style={w.today && { fontFamily: Fonts.bold }}>{w.n}</T>
-              <View style={[styles.row2, { marginTop: 6 }]}>
-                {w.dots.map((c, i) => <View key={i} style={[styles.dot6, { backgroundColor: c }]} />)}
-              </View>
-            </View>
-          ))}
-        </View>
-        <View style={styles.legend}>
-          {[['Optimal', Colors.secondary], ['Review', Colors.primaryContainer], ['Dr. Visit', Colors.surfaceTint]].map(([l, c]) => (
-            <View key={l} style={styles.row6}>
-              <View style={[styles.dot8, { backgroundColor: c }]} />
-              <T v="labelSm" color={Colors.onSurfaceVariant}>{l}</T>
-            </View>
-          ))}
-        </View>
-      </View>
+      <CalendarCard
+        selectedKey={selectedKey}
+        onSelect={setSelectedKey}
+        dayCategories={journal.dayCategories}
+        weekPill={preg ? `Week ${preg.week}` : null}
+      />
+
+      {mode === 'overview' && (
+        <>
+          <MissedBanner missed={missed} onOpen={openEntry} onReviseAll={() => journal.upsertEntries(reviseAllMissed(missed, todayKey))} />
+          <DayTimeline dayKey={selectedKey} items={timeline} onOpen={setDetailId} onAdd={() => setEditor({ entry: null })} />
+          <MoodCard dayKey={selectedKey} />
+          <CheckpointsCard dayKey={selectedKey} week={preg?.week ?? null} />
+          <DayWeightCard dayKey={selectedKey} />
+          <UpcomingCard entries={upcoming} onOpen={openEntry} />
+        </>
+      )}
 
       {/* Kick count */}
       {show('kicks') && (
@@ -244,29 +245,14 @@ export default function TrackScreen({ onNavigate }) {
 
       {/* Weight */}
       {show('weight') && (
-        <View style={styles.card16}>
-          <View style={styles.rowBetween}>
-            <View style={styles.row6}>
-              <Icon name="scale" size={18} color={Colors.primary} />
-              <T v="labelMd" color={Colors.onSurfaceVariant}>Maternal Weight</T>
-            </View>
-            <Pill label="IOM Safe" bg={Colors.secondaryContainer} color={Colors.secondary} style={{ paddingVertical: 2, paddingHorizontal: 8 }} />
-          </View>
-          <View style={[styles.baseline, { marginTop: 8 }]}>
-            <T v="headlineLg">+6.2</T>
-            <T v="bodyMd">kg</T>
-            <T v="labelSm" color={Colors.onSurfaceVariant} style={{ marginLeft: 4 }}>since conception</T>
-          </View>
-          <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 4 }}>
-            Recommended target at Week 24: 5.5 - 7.5 kg. Growth velocity on trajectory.
-          </T>
-          <View style={styles.bar}><View style={[styles.barFill, { width: '62%' }]} /></View>
-          <View style={[styles.rowBetween, { marginTop: 4 }]}>
-            <T v="labelSm" color={Colors.onSurfaceVariant}>Baseline</T>
-            <T v="labelSm" style={{ fontFamily: Fonts.semibold }}>65.8 kg</T>
-            <T v="labelSm" color={Colors.onSurfaceVariant}>Target ~72kg</T>
-          </View>
-        </View>
+        <VitalsWeightCard
+          history={weightHistory(journal)}
+          unit={journal.state.weightUnit}
+          onLog={() => {
+            setSelectedKey(todayKey);
+            setMode('overview');
+          }}
+        />
       )}
 
       {/* Sleep */}
@@ -331,12 +317,12 @@ export default function TrackScreen({ onNavigate }) {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 4, paddingVertical: 4 }}>
             {[
-              ['healing', '+ Symptoms'],
-              ['water-drop', '+ Blood Glucose'],
-              ['mood', '+ Mood & Energy'],
-              ['local-drink', '+ Water 250ml', 'log'],
-            ].map(([icon, label, go]) => (
-              <TouchableOpacity key={label} style={styles.chip} onPress={() => go && onNavigate?.(go)} activeOpacity={0.8}>
+              ['healing', '+ Symptoms', { category: 'symptom' }],
+              ['water-drop', '+ Blood Glucose', { category: 'test', title: 'Blood glucose check' }],
+              ['mood', '+ Journal note', { category: 'journal' }],
+              ['local-drink', '+ Water 250ml', null, 'log'],
+            ].map(([icon, label, preset, go]) => (
+              <TouchableOpacity key={label} style={styles.chip} onPress={() => (go ? onNavigate?.(go) : setEditor({ entry: null, preset }))} activeOpacity={0.8}>
                 <Icon name={icon} size={18} color={Colors.primary} />
                 <T v="labelMd" style={{ fontFamily: Fonts.medium }}>{label}</T>
               </TouchableOpacity>
@@ -344,16 +330,80 @@ export default function TrackScreen({ onNavigate }) {
           </ScrollView>
         </View>
       )}
+
+      <EntryEditorSheet visible={!!editor} entry={editor?.entry || null} preset={editor?.preset} dayKey={selectedKey} onClose={() => setEditor(null)} />
+      <EntryDetailSheet
+        entryId={detailId}
+        onClose={() => setDetailId(null)}
+        onEdit={(entry) => {
+          setDetailId(null);
+          setEditor({ entry });
+        }}
+      />
     </ScrollView>
   );
 }
 
 const SECTIONS = {
+  overview: ['kicks', 'bp', 'sleep', 'doctor', 'quick'],
   vitals: ['bp', 'weight', 'sleep', 'doctor'],
   kicks: ['kicks'],
   nutrition: ['weight', 'quick'],
   contractions: [],
 };
+
+// Weight trend from journal entries (Track > Vitals). No target band: a healthy gain depends on
+// pre-pregnancy BMI, which MamAmie doesn't collect.
+function VitalsWeightCard({ history, unit, onLog }) {
+  const fmt = (kg) => (unit === 'lbs' ? (kg * 2.20462).toFixed(1) : kg.toFixed(1));
+  const last = history[history.length - 1];
+  const first = history[0];
+  const change = last && first && last.dayKey !== first.dayKey ? last.kg - first.kg : null;
+  const recent = history.slice(-8);
+  const min = Math.min(...recent.map((h) => h.kg));
+  const max = Math.max(...recent.map((h) => h.kg));
+  return (
+    <View style={styles.card16}>
+      <View style={styles.rowBetween}>
+        <View style={styles.row6}>
+          <Icon name="scale" size={18} color={Colors.primary} />
+          <T v="labelMd" color={Colors.onSurfaceVariant}>Maternal Weight</T>
+        </View>
+        <TouchableOpacity onPress={onLog} hitSlop={6}>
+          <T v="labelSm" color={Colors.primary} style={{ fontFamily: Fonts.semibold }}>{last ? 'Log again' : 'Log weight'}</T>
+        </TouchableOpacity>
+      </View>
+      {!last ? (
+        <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 8 }}>
+          No weight logged yet. Add one from the day view to start your trend.
+        </T>
+      ) : (
+        <>
+          <View style={[styles.baseline, { marginTop: 8 }]}>
+            <T v="headlineLg">{change != null ? `${change >= 0 ? '+' : '−'}${fmt(Math.abs(change))}` : fmt(last.kg)}</T>
+            <T v="bodyMd">{unit}</T>
+            <T v="labelSm" color={Colors.onSurfaceVariant} style={{ marginLeft: 4 }}>
+              {change != null ? `since ${formatDayKey(first.dayKey, { short: true })}` : `on ${formatDayKey(last.dayKey, { short: true })}`}
+            </T>
+          </View>
+          {recent.length > 1 && (
+            <View style={styles.weightBars}>
+              {recent.map((h) => (
+                <View key={h.dayKey} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
+                  <View style={[styles.weightBar, { height: 12 + (max > min ? ((h.kg - min) / (max - min)) * 36 : 18) }]} />
+                  <T v="labelSm" color={Colors.onSurfaceVariant} style={{ fontSize: 9 }}>{`${h.dayKey.slice(8)}/${h.dayKey.slice(5, 7)}`}</T>
+                </View>
+              ))}
+            </View>
+          )}
+          <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 8 }}>
+            Latest {fmt(last.kg)} {unit} on {formatDayKey(last.dayKey, { short: true })}. Ask your clinician what gain is right for you.
+          </T>
+        </>
+      )}
+    </View>
+  );
+}
 
 function BpChart() {
   const w = 300;
@@ -418,8 +468,8 @@ const styles = StyleSheet.create({
   infoBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.surfaceContainer, alignItems: 'center', justifyContent: 'center' },
   metric: { flex: 1, padding: 8, borderRadius: 16, backgroundColor: Colors.surfaceContainerLow },
   chart: { height: 112, borderRadius: 16, backgroundColor: Colors.surfaceContainerLow, padding: 8, justifyContent: 'center' },
-  bar: { height: 8, borderRadius: 4, backgroundColor: Colors.surfaceContainerHigh, overflow: 'hidden', marginTop: 16 },
-  barFill: { height: '100%', borderRadius: 4, backgroundColor: Colors.secondary },
+  weightBars: { flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginTop: 12, height: 64 },
+  weightBar: { width: '70%', borderRadius: 4, backgroundColor: Colors.secondaryContainer },
   sleepPill: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8, padding: 8, borderRadius: 12, backgroundColor: Colors.surfaceContainerLow },
   sleepIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.secondaryFixed, alignItems: 'center', justifyContent: 'center' },
   docImg: { width: 48, height: 48, borderRadius: 24 },
