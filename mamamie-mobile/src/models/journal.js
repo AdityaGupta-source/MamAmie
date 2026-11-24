@@ -108,6 +108,7 @@ export function makeEntry(fields) {
     milestone: null,
     task: null,
     weight: null,
+    session: null, // { kind: 'kicks' | 'contractions', summary } for timer-made entries
     ...fields,
   };
 }

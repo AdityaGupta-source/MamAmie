@@ -158,11 +158,17 @@ Original plan:
   not auto-marked completed, and stable ids are `schedule:<milestone>` strings (the iOS hash-based
   UUID changes every launch). Photo entries wait for the Vault (Phase 6).
 
-### Phase 3 — Log (+) quick actions
+### Phase 3 — Log (+) quick actions — built 2026-11-24, needs device test
 Turn the centre **+** into an action sheet: Water (current Quick Log screen), Food (Phase 4),
 Kick session, Contraction, Symptom, Medication dose, Journal note, Weight. Each writes to the
 journal/hydration stores so Home and Track update. Move kick + contraction timers out of
 `features/track/TrackScreen.js` into a shared `sessionsStore`.
+- Implemented as: `features/log/QuickActionsSheet.js` (opened by the + button from the `(main)` layout;
+  Water opens the hydration screen at `/log`, Food/Symptom/Journal use the entry editor, plus a
+  medication-dose sheet and the weight sheet), `stores/sessionsStore.js` with `useSessions()`, and
+  `features/sessions/SessionCards.js` shared by Track, Home and the + sheet. Finished kick sessions
+  become journal entries; each day's contractions keep one summary entry. Home's tool tiles use real data.
+  The iOS phone app has no kick/contraction screens (they live on the Watch), so these flows are new.
 
 ### Phase 4 — Food scanner (iOS: `Services/MaternalFoodAIService.swift`, `Models/FoodNutritionModels.swift`, `Services/GeminiChatService.swift`, `Food*View.swift`)
 - Photo via `expo-image-picker` (camera or gallery), or text description.

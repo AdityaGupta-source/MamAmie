@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Svg, { Rect, Line, Polyline, Circle } from 'react-native-svg';
 import { Colors, Fonts, Radius, Shadow } from '../../constants/theme';
-import { usePersistentState } from '../../stores/usePersistentState';
+import { KickCounterCard, ContractionTimerCard } from '../sessions/SessionCards';
 import { Icon, T, Pill } from '../../components/ui';
 import { useOnboarding } from '../../stores/onboardingStore';
 import { useJournal, timelineFor, upcomingFrom, weightHistory } from '../../stores/journalStore';
@@ -28,15 +28,8 @@ const MODES = [
 // Systolic readings for the 7-day sparkline.
 const BP_WEEK = [116, 114, 117, 115, 119, 120, 118];
 
-const pad = (n) => String(n).padStart(2, '0');
-const fmt = (s) => `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
-
 export default function TrackScreen({ onNavigate }) {
   const [mode, setMode] = useState('overview');
-  const [kicks, setKicks] = usePersistentState('kick_session', { count: 10, startedAt: null, elapsed: 1334 });
-  const [contractions, setContractions] = usePersistentState('contractions', []);
-  const [contractionStart, setContractionStart] = useState(null);
-  const [now, setNow] = useState(Date.now());
 
   const { profile } = useOnboarding();
   const journal = useJournal();
@@ -52,34 +45,6 @@ export default function TrackScreen({ onNavigate }) {
   const openEntry = (e) => {
     setSelectedKey(e.dayKey);
     setDetailId(e.id);
-  };
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const sessionSeconds = kicks.startedAt ? Math.floor((now - kicks.startedAt) / 1000) : kicks.elapsed;
-  const goalMet = kicks.count >= 10;
-
-  const addKick = () =>
-    setKicks((k) => {
-      // A finished session starts over on the next tap.
-      if (k.count >= 10) return { count: 1, startedAt: Date.now(), elapsed: 0 };
-      const count = k.count + 1;
-      const startedAt = k.startedAt || Date.now();
-      if (count >= 10) return { count, startedAt: null, elapsed: Math.floor((Date.now() - startedAt) / 1000) };
-      return { ...k, count, startedAt };
-    });
-
-  const toggleContraction = () => {
-    if (contractionStart) {
-      const secs = Math.round((Date.now() - contractionStart) / 1000);
-      setContractions((c) => [{ at: contractionStart, secs }, ...c].slice(0, 10));
-      setContractionStart(null);
-    } else {
-      setContractionStart(Date.now());
-    }
   };
 
   const show = (section) => SECTIONS[mode]?.includes(section);
@@ -120,76 +85,10 @@ export default function TrackScreen({ onNavigate }) {
       )}
 
       {/* Kick count */}
-      {show('kicks') && (
-        <View style={[styles.card16, { padding: 24 }]}>
-          <View style={styles.rowBetween}>
-            <View style={{ flex: 1 }}>
-              <View style={styles.row6}>
-                <Icon name="child-care" size={20} color={Colors.primary} />
-                <T v="headlineSm">Fetal Kick Count</T>
-              </View>
-              <T v="bodySm" color={Colors.onSurfaceVariant}>Active monitoring session • Standard protocol 10 kicks / 2h</T>
-            </View>
-            <Pill label={goalMet ? 'Healthy Baseline' : 'In Progress'} bg={Colors.secondaryContainer} color={Colors.onSecondaryContainer} />
-          </View>
-          <View style={styles.kickBox}>
-            <View>
-              <View style={styles.baseline}>
-                <T v="display">{kicks.count}</T>
-                <T v="headlineSm" color={Colors.onSurfaceVariant} style={{ fontFamily: Fonts.regular }}>/ 10 kicks</T>
-              </View>
-              <View style={[styles.row6, { marginTop: 4 }]}>
-                <Icon name="timer" size={16} color={Colors.primary} />
-                <T v="labelMd" color={Colors.onSurfaceVariant} style={{ fontFamily: Fonts.medium }}>
-                  Session timer: <T v="labelMd">{fmt(sessionSeconds)}</T>
-                </T>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.kickBtn} onPress={addKick} activeOpacity={0.85}>
-              <Icon name="add" size={24} color={Colors.onPrimary} />
-              <T v="labelLg" color={Colors.onPrimary} style={{ fontFamily: Fonts.bold }}>Kick</T>
-            </TouchableOpacity>
-          </View>
-          <View style={{ marginTop: 16 }}>
-            <View style={[styles.rowBetween, { marginBottom: 6 }]}>
-              <T v="labelSm" color={Colors.onSurfaceVariant}>Session Progress</T>
-              <T v="labelSm" color={Colors.secondary} style={{ fontFamily: Fonts.semibold }}>
-                {goalMet ? `Goal Reached in ${Math.max(1, Math.round(kicks.elapsed / 60))} mins` : `${10 - kicks.count} kicks to goal`}
-              </T>
-            </View>
-            <View style={styles.progressDots}>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <View key={i} style={[styles.progressDot, { backgroundColor: i < kicks.count ? Colors.secondary : Colors.surfaceContainerHigh }]} />
-              ))}
-            </View>
-          </View>
-        </View>
-      )}
+      {show('kicks') && <KickCounterCard />}
 
       {/* Contractions (own tab only) */}
-      {mode === 'contractions' && (
-        <View style={[styles.card16, { padding: 24 }]}>
-          <View style={styles.row6}>
-            <Icon name="timer" size={20} color={Colors.primary} />
-            <T v="headlineSm">Contraction Timer</T>
-          </View>
-          <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 2 }}>
-            Tap when a wave starts and again when it ends.
-          </T>
-          <TouchableOpacity style={[styles.kickBtn, { alignSelf: 'stretch', justifyContent: 'center', marginTop: 16 }]} onPress={toggleContraction}>
-            <Icon name={contractionStart ? 'pause' : 'play-arrow'} size={22} color={Colors.onPrimary} />
-            <T v="labelLg" color={Colors.onPrimary}>
-              {contractionStart ? `End wave • ${Math.floor((now - contractionStart) / 1000)}s` : 'Start wave'}
-            </T>
-          </TouchableOpacity>
-          {contractions.slice(0, 5).map((c) => (
-            <View key={c.at} style={[styles.rowBetween, styles.listRow]}>
-              <T v="bodySm" color={Colors.onSurfaceVariant}>{new Date(c.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</T>
-              <T v="labelMd">{c.secs}s</T>
-            </View>
-          ))}
-        </View>
-      )}
+      {mode === 'contractions' && <ContractionTimerCard />}
 
       {/* Blood pressure */}
       {show('bp') && (
@@ -443,28 +342,6 @@ const styles = StyleSheet.create({
   weekDay: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 12 },
   weekDayToday: { backgroundColor: Colors.primary, transform: [{ scale: 1.05 }], ...Shadow.sm },
   legend: { flexDirection: 'row', justifyContent: 'center', gap: 16, paddingTop: 12 },
-  kickBox: {
-    marginTop: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: Colors.surfaceContainerLow,
-  },
-  kickBtn: {
-    height: 64,
-    paddingHorizontal: 24,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    ...Shadow.primary,
-  },
-  progressDots: { flexDirection: 'row', gap: 6 },
-  progressDot: { flex: 1, height: 8, borderRadius: 4 },
-  listRow: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: Colors.surfaceContainer, marginTop: 8 },
   infoBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.surfaceContainer, alignItems: 'center', justifyContent: 'center' },
   metric: { flex: 1, padding: 8, borderRadius: 16, backgroundColor: Colors.surfaceContainerLow },
   chart: { height: 112, borderRadius: 16, backgroundColor: Colors.surfaceContainerLow, padding: 8, justifyContent: 'center' },

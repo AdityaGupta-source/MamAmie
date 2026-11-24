@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Colors, Fonts, Radius, Shadow } from '../../constants/theme';
 import { usePersistentState } from '../../stores/usePersistentState';
@@ -8,6 +8,10 @@ import { useOnboarding } from '../../stores/onboardingStore';
 import { pregnancyStatus, postpartumStatus, TRIMESTER_NAMES } from '../../services/pregnancyDating';
 import { toDayKey, addDays, fromDayKey, formatDayKey, daysBetween } from '../../services/dayKey';
 import { useJournal, nextCareEntry, useDayCheckpoints } from '../../stores/journalStore';
+import { useSessions } from '../../stores/sessionsStore';
+import Sheet from '../../components/Sheet';
+import EntryEditorSheet from '../track/EntryEditorSheet';
+import { KickCounterCard, ContractionTimerCard } from '../sessions/SessionCards';
 import { formatMinutes } from '../../models/journal';
 import JourneyCard from './JourneyCard';
 import WeekInsightCard from './WeekInsightCard';
@@ -34,12 +38,50 @@ function greeting() {
   return { eyebrow: 'EVENING REST', hello: 'Good evening' };
 }
 
-const TILES = [
-  { icon: 'footprint', iconBg: Colors.tertiaryFixed, iconColor: Colors.tertiary, title: 'Kick Counter', sub: 'Active 42m ago', foot: '10 kicks / 18 min', footColor: Colors.primary, go: 'track' },
-  { icon: 'timer', iconBg: Colors.primaryFixed, iconColor: Colors.primary, title: 'Contraction Timer', sub: 'Resting mode', foot: 'Tap to log wave', footColor: Colors.secondary, go: 'track' },
-  { icon: 'stethoscope', iconBg: Colors.secondaryFixed, iconColor: Colors.secondary, title: 'Symptom Log', sub: 'Heartburn (mild)', foot: '+ Update notes', footColor: Colors.primary, go: 'track' },
-  { icon: 'document-scanner', iconBg: Colors.surfaceContainerHigh, iconColor: Colors.primary, title: 'Scan Lab Report', sub: 'OCR AI Ready', foot: 'Fast Vault Sync', footColor: Colors.secondary, go: 'vault' },
-];
+// "42 min ago" style label for a past timestamp.
+function ago(ms) {
+  const m = Math.max(0, Math.round((Date.now() - ms) / 60000));
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} h ago`;
+  const d = Math.round(h / 24);
+  return `${d} day${d > 1 ? 's' : ''} ago`;
+}
+
+// Tool tiles, filled from the kick/contraction sessions and the journal.
+function buildTiles(sessions, journal) {
+  const kick = sessions.kickActive;
+  const lastKick = sessions.kickSessions[0];
+  const lastC = sessions.contractions[0];
+  const lastSymptom = Object.keys(journal.entriesByDay)
+    .sort()
+    .reverse()
+    .flatMap((k) => journal.entriesByDay[k].slice().reverse())
+    .find((e) => e.category === 'symptom' && !e.session && !e.weight);
+  return [
+    {
+      icon: 'footprint', iconBg: Colors.tertiaryFixed, iconColor: Colors.tertiary, title: 'Kick Counter',
+      sub: kick ? `In progress • ${kick.count}/10` : lastKick ? `Last ${ago(lastKick.endedAt)}` : 'No sessions yet',
+      foot: lastKick && !kick ? `${lastKick.count} kicks / ${Math.max(1, Math.round((lastKick.endedAt - lastKick.startedAt) / 60000))} min` : 'Tap to count',
+      footColor: Colors.primary, go: 'kicks',
+    },
+    {
+      icon: 'timer', iconBg: Colors.primaryFixed, iconColor: Colors.primary, title: 'Contraction Timer',
+      sub: sessions.contractionStart ? 'Timing now…' : lastC ? `Last ${ago(lastC.startAt)}` : 'Resting mode',
+      foot: lastC ? `${lastC.durationSec} s long` : 'Tap to time one', footColor: Colors.secondary, go: 'contraction',
+    },
+    {
+      icon: 'stethoscope', iconBg: Colors.secondaryFixed, iconColor: Colors.secondary, title: 'Symptom Log',
+      sub: lastSymptom ? `${lastSymptom.title}${lastSymptom.symptom?.severity ? ` (${lastSymptom.symptom.severity})` : ''}` : 'Nothing logged',
+      foot: '+ Log a symptom', footColor: Colors.primary, go: 'symptom',
+    },
+    {
+      icon: 'document-scanner', iconBg: Colors.surfaceContainerHigh, iconColor: Colors.primary, title: 'Scan Lab Report',
+      sub: 'Reports & scans', foot: 'Open the Vault', footColor: Colors.secondary, go: 'vault',
+    },
+  ];
+}
 
 
 function dueLabel(days) {
@@ -67,6 +109,9 @@ export default function HomeScreen({ onNavigate, onEditProfile }) {
   const journal = useJournal();
   const routine = useDayCheckpoints(todayKey, preg?.week ?? null);
   const nextCare = nextCareEntry(journal, todayKey);
+  const sessions = useSessions();
+  const [sheet, setSheet] = useState(null); // 'kicks' | 'contraction' | 'symptom'
+  const tiles = buildTiles(sessions, journal);
   const { state: hydration, log: logWater } = useHydration();
   const GOAL = hydration.target;
   const [bookmarked, setBookmarked] = usePersistentState('affirmation_saved', false);
@@ -224,13 +269,13 @@ export default function HomeScreen({ onNavigate, onEditProfile }) {
       <View>
         <T v="headlineSm" style={{ marginBottom: 8 }}>Active Telemetry</T>
         <View style={styles.grid}>
-          {TILES.map((t) => (
-            <TouchableOpacity key={t.title} style={styles.tile} activeOpacity={0.85} onPress={() => onNavigate?.(t.go)}>
+          {tiles.map((t) => (
+            <TouchableOpacity key={t.title} style={styles.tile} activeOpacity={0.85} onPress={() => (t.go === 'vault' ? onNavigate?.('vault') : setSheet(t.go))}>
               <View style={[styles.tileIcon, { backgroundColor: t.iconBg }]}>
                 <Icon name={t.icon} size={22} color={t.iconColor} />
               </View>
               <T v="labelLg">{t.title}</T>
-              <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 2 }}>{t.sub}</T>
+              <T v="bodySm" color={Colors.onSurfaceVariant} style={{ marginTop: 2 }} numberOfLines={1}>{t.sub}</T>
               <T v="labelSm" color={t.footColor} style={{ marginTop: 4, fontFamily: Fonts.semibold }}>{t.foot}</T>
             </TouchableOpacity>
           ))}
@@ -262,6 +307,13 @@ export default function HomeScreen({ onNavigate, onEditProfile }) {
           </View>
         </TouchableOpacity>
       </Card>
+      <Sheet visible={sheet === 'kicks'} title="Kick session" onClose={() => setSheet(null)}>
+        <KickCounterCard flat />
+      </Sheet>
+      <Sheet visible={sheet === 'contraction'} title="Contractions" onClose={() => setSheet(null)}>
+        <ContractionTimerCard flat />
+      </Sheet>
+      <EntryEditorSheet visible={sheet === 'symptom'} entry={null} preset={{ category: 'symptom' }} dayKey={todayKey} onClose={() => setSheet(null)} />
     </ScrollView>
   );
 }

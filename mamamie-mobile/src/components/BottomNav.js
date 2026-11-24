@@ -31,7 +31,7 @@ export default function BottomNav({ current, onChange }) {
     <View style={styles.nav}>
       {LEFT.map((i) => <Tab key={i.key} item={i} />)}
       <View style={styles.fabWrap}>
-        <TouchableOpacity style={styles.fab} activeOpacity={0.85} onPress={() => onChange('log')} accessibilityLabel="Quick log">
+        <TouchableOpacity style={styles.fab} activeOpacity={0.85} onPress={() => onChange('log')} accessibilityLabel="Quick log: water, food, kicks, contractions and more">
           <Icon name="add" size={30} color={Colors.onPrimary} />
         </TouchableOpacity>
         <T v="labelSm" color={current === 'log' ? Colors.primary : Colors.onSurfaceVariant} style={[styles.label, { fontFamily: Fonts.medium }]}>
