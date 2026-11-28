@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { publicUser } from '../lib/session.js';
+import { deleteUserFiles } from './files.js';
 
 export const meRoutes: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', app.authenticate);
@@ -30,9 +31,10 @@ export const meRoutes: FastifyPluginAsync = async (app) => {
     return reply.code(204).send();
   });
 
-  // Erases the account and all of its synced health data (cascade).
+  // Erases the account and all of its synced health data (cascade) + uploaded vault files.
   app.delete('/me', async (req, reply) => {
     await prisma.user.delete({ where: { id: req.user.sub } });
+    await deleteUserFiles(req.user.sub);
     return reply.code(204).send();
   });
 };

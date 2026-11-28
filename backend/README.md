@@ -27,13 +27,18 @@ On a phone, point the app at your laptop's LAN IP (e.g. `http://192.168.x.x:4000
 | POST | `/me/password` | `{ currentPassword, newPassword }`; revokes sessions |
 | GET | `/sync/pull?since=<cursor>` | Changes after the cursor; `{ changes, cursor, hasMore }` |
 | POST | `/sync/push` | `{ changes: [{ collection, id, modifiedAt, deleted?, data }] }` -> `{ accepted, conflicts, cursor }` |
+| POST | `/ai/food-analyze` | `{ imageBase64?, mimeType?, description?, dietaryPreference? }` -> nutrition + PregnancyRDA insight |
+| POST | `/ai/chat` | `{ messages, contextSnapshot? }` -> grounded reply + disclaimer (never logged/stored) |
+| POST | `/files` | `{ filename, mimeType, dataBase64 }` -> upload Vault image/PDF attachment |
+| GET | `/files` | List user's uploaded Vault attachments |
+| GET/DELETE | `/files/:id` | Download or delete a Vault attachment (erased on `DELETE /me`) |
 
 Access tokens last 15 minutes (`Authorization: Bearer ...`); refresh tokens 60 days.
 
 ## Sync model
 
 The app stores everything as JSON in AsyncStorage, so the server stores each record as-is, keyed by `(user, collection, id)`.
-Collections: `entries`, `medicationSchedules`, `doseLogs`, `kickSessions`, `contractions`, and `documents`
+Collections: `entries`, `medicationSchedules`, `doseLogs`, `kickSessions`, `contractions`, `documents`, `meals`, `chats`, and `readings`
 (singletons by id: `profile`, `habits`, `checks`, `hydration`, `settings`).
 
 - Last write wins on the client's `modifiedAt`. A stale push is returned in `conflicts` with the server copy.
@@ -42,4 +47,4 @@ Collections: `entries`, `medicationSchedules`, `doseLogs`, `kickSessions`, `cont
 
 ## Not built yet
 
-Photo/attachment upload, the AI "Ask" endpoint, push notifications, email verification and password reset, and the app-side sync client.
+Push notifications, email verification and password reset, Postgres production deployment, and the app-side Phase 6–9 UI clients.

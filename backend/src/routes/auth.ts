@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '../db.js';
+import { config } from '../config.js';
 import { issueTokens, publicUser } from '../lib/session.js';
 import { hashToken } from '../lib/tokens.js';
 
@@ -16,7 +17,7 @@ const refreshBody = z.object({ refreshToken: z.string().min(20).max(200) });
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 12);
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
-  const strict = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } };
+  const strict = { config: { rateLimit: { max: config.NODE_ENV === 'test' ? 1000 : 10, timeWindow: '1 minute' } } };
 
   app.post('/auth/register', strict, async (req, reply) => {
     const body = credentials.parse(req.body);

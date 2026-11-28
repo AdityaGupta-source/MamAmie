@@ -91,4 +91,80 @@ describe('sync', () => {
     expect(del.statusCode).toBe(204);
     expect(await prisma.syncRecord.count({ where: { userId: a.user.id } })).toBe(0);
   });
+
+  it('supports meals, chats, and readings collections', async () => {
+    const a = await register('collections@example.com');
+    const push = await post(
+      '/sync/push',
+      {
+        changes: [
+          { collection: 'meals', id: 'm1', modifiedAt: 100, data: { id: 'm1', name: 'Dal' } },
+          { collection: 'chats', id: 'c1', modifiedAt: 100, data: { id: 'c1', turns: [] } },
+          { collection: 'readings', id: 'r1', modifiedAt: 100, data: { id: 'r1', systolic: 118 } },
+        ],
+      },
+      a.accessToken
+    );
+    expect(push.statusCode).toBe(200);
+    expect(push.json().accepted).toEqual(['meals/m1', 'chats/c1', 'readings/r1']);
+  });
+});
+
+describe('ai', () => {
+  it('requires auth, validates input, and returns fallback nutrition and chat responses', async () => {
+    const a = await register('ai@example.com');
+    expect((await post('/ai/food-analyze', { description: 'Spinach dal' })).statusCode).toBe(401);
+    expect((await post('/ai/food-analyze', {}, a.accessToken)).statusCode).toBe(400);
+
+    const food = await post('/ai/food-analyze', { description: 'Spinach dal', dietaryPreference: 'vegetarian' }, a.accessToken);
+    expect(food.statusCode).toBe(200);
+    expect(food.json()).toMatchObject({
+      source: 'fallback',
+      disclaimer: expect.stringContaining('Estimate'),
+      rdaTargets: { ironMg: 27, folateMcg: 600 },
+    });
+
+    expect((await post('/ai/chat', { messages: [{ role: 'user', text: 'Hi' }] })).statusCode).toBe(401);
+    const chat = await post(
+      '/ai/chat',
+      {
+        messages: [{ role: 'user', text: 'What foods help with iron?' }],
+        contextSnapshot: { stage: 'pregnant', gestationalWeek: 24, trimester: 2 },
+      },
+      a.accessToken
+    );
+    expect(chat.statusCode).toBe(200);
+    expect(chat.json().reply).toContain('not a medical diagnosis');
+  });
+});
+
+describe('files', () => {
+  it('uploads, downloads, isolates users, validates mimeType, and deletes with account', async () => {
+    const a = await register('files-a@example.com');
+    const b = await register('files-b@example.com');
+
+    const badMime = await post('/files', { filename: 'script.sh', mimeType: 'text/plain', dataBase64: 'aGk=' }, a.accessToken);
+    expect(badMime.statusCode).toBe(400);
+
+    const sampleB64 = Buffer.from('hello-vault-pdf').toString('base64');
+    const up = await post('/files', { filename: 'lab-report.pdf', mimeType: 'application/pdf', dataBase64: sampleB64 }, a.accessToken);
+    expect(up.statusCode).toBe(201);
+    const fileId = up.json().id as string;
+
+    const list = await get('/files', a.accessToken);
+    expect(list.statusCode).toBe(200);
+    expect(list.json().files).toHaveLength(1);
+
+    const dlA = await get(`/files/${fileId}`, a.accessToken);
+    expect(dlA.statusCode).toBe(200);
+    expect(dlA.body).toBe('hello-vault-pdf');
+
+    // User B cannot access user A's attachment.
+    expect((await get(`/files/${fileId}`, b.accessToken)).statusCode).toBe(404);
+
+    // Deleting user A erases their attachment rows too.
+    const del = await app.inject({ method: 'DELETE', url: '/api/v1/me', headers: { authorization: `Bearer ${a.accessToken}` } });
+    expect(del.statusCode).toBe(204);
+    expect(await prisma.attachment.count({ where: { userId: a.user.id } })).toBe(0);
+  });
 });

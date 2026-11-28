@@ -8,6 +8,8 @@ import { config } from './config.js';
 import { authRoutes } from './routes/auth.js';
 import { meRoutes } from './routes/me.js';
 import { syncRoutes } from './routes/sync.js';
+import { aiRoutes } from './routes/ai.js';
+import { filesRoutes } from './routes/files.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -56,5 +58,7 @@ export async function buildApp() {
   await app.register(authRoutes, { prefix: '/api/v1' });
   await app.register(meRoutes, { prefix: '/api/v1' });
   await app.register(syncRoutes, { prefix: '/api/v1' });
+  await app.register(aiRoutes, { prefix: '/api/v1' });
+  await app.register(filesRoutes, { prefix: '/api/v1' });
   return app;
 }

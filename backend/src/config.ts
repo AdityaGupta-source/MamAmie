@@ -10,6 +10,9 @@ const schema = z.object({
   CORS_ORIGINS: z.string().default(''),
   ACCESS_TOKEN_TTL: z.string().default('15m'),
   REFRESH_TOKEN_DAYS: z.coerce.number().default(60),
+  GEMINI_API_KEY: z.string().default(''),
+  UPLOAD_DIR: z.string().default('./uploads'),
+  MAX_FILE_BYTES: z.coerce.number().default(10 * 1024 * 1024),
 });
 
 export const config = schema.parse(process.env);

@@ -4,7 +4,17 @@ import { prisma } from '../db.js';
 
 // Mirrors what the app keeps in AsyncStorage. `documents` holds singletons by name
 // (profile, habits, checks, hydration, settings); the rest are lists of records with a stable id.
-export const COLLECTIONS = ['entries', 'medicationSchedules', 'doseLogs', 'kickSessions', 'contractions', 'documents'] as const;
+export const COLLECTIONS = [
+  'entries',
+  'medicationSchedules',
+  'doseLogs',
+  'kickSessions',
+  'contractions',
+  'documents',
+  'meals',
+  'chats',
+  'readings',
+] as const;
 
 const MAX_RECORD_BYTES = 256 * 1024;
 const MAX_PUSH = 500;

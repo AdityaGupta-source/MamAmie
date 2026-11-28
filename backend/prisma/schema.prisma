@@ -20,6 +20,7 @@ model User {
 
   refreshTokens RefreshToken[]
   records       SyncRecord[]
+  attachments   Attachment[]
 }
 
 model RefreshToken {
@@ -51,4 +52,18 @@ model SyncRecord {
 
   @@id([userId, collection, recordId])
   @@index([userId, serverVersion])
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  userId     String
+  filename   String
+  mimeType   String
+  sizeBytes  Int
+  storageKey String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
