@@ -10,6 +10,11 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.mamamie.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -24,7 +29,14 @@
       "expo-font",
       "expo-router",
       "expo-splash-screen",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow MamAmie to access your photos to scan lab reports and vitals.",
+          "cameraPermission": "Allow MamAmie to use the camera to scan lab reports and BP monitors."
+        }
+      ]
     ],
     "scheme": "mamamie"
   }
